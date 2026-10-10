@@ -16,6 +16,7 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [x] Distinguish illustrative setup records from live external activity.
 - [x] Add accessible status messages, reduced-motion support and mobile layouts.
 - [x] Add automated checks for accessible names, live status announcements and external-only scripts.
+- [x] Verify browser sign-in, invalid-password handling, navigation, search and sign-out in [CI run #40](https://github.com/thakareatharv49-svg/Nexora-HQ/actions/runs/38095067863).
 - [ ] Run manual browser, keyboard, screen-reader, contrast and responsive checks.
 
 ## M2 — Backend and persistence
