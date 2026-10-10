@@ -150,8 +150,8 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
             raise HTTPException(status_code=409, detail="Authentication is not configured")
         client_host = request.client.host if request.client else "unknown"
         rate_limit_key = hmac.new(
-            session_secret.encode("utf-8"),
-            f"nexora-login-rate-limit:{client_host}".encode("utf-8"),
+            session_secret.encode(),
+            f"nexora-login-rate-limit:{client_host}".encode(),
             hashlib.sha256,
         ).hexdigest()
         database = request.app.state.database
