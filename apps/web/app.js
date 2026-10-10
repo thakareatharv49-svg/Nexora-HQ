@@ -98,6 +98,25 @@
 
   async function syncHQApi() {
     try {
+      const authResponse = await fetch("/api/auth/status", { headers: { Accept: "application/json" }, cache: "no-store" });
+      if (!authResponse.ok) {
+        document.documentElement.classList.remove("auth-checking");
+        return;
+      }
+      const auth = await authResponse.json();
+      const overlay = $("#auth-overlay");
+      const signOut = $("#sign-out");
+      if (auth.auth_required && !auth.authenticated) {
+        overlay.classList.remove("hidden");
+        signOut.classList.add("hidden");
+        document.documentElement.classList.remove("auth-checking");
+        $("#login-password").focus();
+        return;
+      }
+      overlay.classList.add("hidden");
+      signOut.classList.toggle("hidden", !auth.auth_required);
+      document.documentElement.classList.remove("auth-checking");
+
       const healthResponse = await fetch("/api/health", { headers: { Accept: "application/json" }, cache: "no-store" });
       if (!healthResponse.ok) return;
       const health = await healthResponse.json();
@@ -111,9 +130,13 @@
         fetch("/api/ventures", { headers: { Accept: "application/json" }, cache: "no-store" }),
         fetch("/api/activity?limit=50", { headers: { Accept: "application/json" }, cache: "no-store" })
       ]);
+      if (ventureResponse.status === 401 || activityResponse.status === 401) {
+        await syncHQApi();
+        return;
+      }
       if (ventureResponse.ok) {
         const registry = await ventureResponse.json();
-        const values = $(".stat-card .stat-value");
+        const values = $$(".stat-card .stat-value");
         if (values[0] && Number.isInteger(registry.count)) values[0].textContent = String(registry.count).padStart(2, "0");
         if (values[1] && Array.isArray(registry.items)) {
           const connected = registry.items.filter(item => item.connection_state === "connected").length;
@@ -133,14 +156,69 @@
           }));
           $("#activity-list")?.replaceChildren(...records.slice(0, 3).map(makeActivity));
           $("#all-activity-list")?.replaceChildren(...records.map(makeActivity));
-          $(".panel-footnote").forEach(note => { note.textContent = "Persisted HQ records; no external venture activity is connected."; });
+          $$(".panel-footnote").forEach(note => { note.textContent = "Persisted HQ records; no external venture activity is connected."; });
         }
       }
     } catch {
       // Static hosting has no HQ API; keep the explicit static-foundation state.
+    } finally {
+      document.documentElement.classList.remove("auth-checking");
     }
   }
 
+  $("#login-form")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const error = $("#login-error");
+    const password = $("#login-password").value;
+    error.textContent = "";
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+      if (!response.ok) {
+        error.textContent = response.status === 401 ? "Invalid password. Try again." : "Sign-in is unavailable. Check the server configuration.";
+        return;
+      }
+      $("#login-password").value = "";
+      await syncHQApi();
+    } catch {
+      error.textContent = "Could not reach the HQ server. Try again.";
+    }
+  });
+
+  $("#sign-out")?.addEventListener("click", async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", headers: { Accept: "application/json" } });
+      await syncHQApi();
+    } catch {
+      notify("Could not sign out. Check the HQ server connection.");
+    }
+  });
+
+  document.addEventListener("keydown", event => {
+    const overlay = $("#auth-overlay");
+    if (overlay.classList.contains("hidden")) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = $("input:not([disabled]), button:not([disabled]), a[href]", overlay);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
+  document.documentElement.classList.add("auth-checking");
   const hashPage = location.hash.slice(1);
   if (pages.includes(hashPage)) showPage(hashPage);
   else showPage("overview");

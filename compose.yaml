@@ -9,6 +9,8 @@ services:
     environment:
       NEXORA_ENV: production
       NEXORA_DB_PATH: /data/nexora-hq.sqlite3
+      NEXORA_ADMIN_PASSWORD_HASH: ${NEXORA_ADMIN_PASSWORD_HASH:?Set NEXORA_ADMIN_PASSWORD_HASH in your environment or .env file}
+      NEXORA_SESSION_SECRET: ${NEXORA_SESSION_SECRET:?Set NEXORA_SESSION_SECRET in your environment or .env file}
     volumes:
       - nexora-data:/data
     restart: unless-stopped

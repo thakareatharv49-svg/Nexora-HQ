@@ -4,7 +4,9 @@
 
 Requirements: Docker Engine and Docker Compose plugin.
 
-From the repository root:
+From the repository root, generate a password hash with `python -m src.nexora_hq.auth hash-password` and a session secret with `python -c "import secrets; print(secrets.token_urlsafe(48))"`. Copy `.env.example` to `.env` and fill in both values. Keep `.env` private and out of source control.
+
+Then run:
 
 ```bash
 docker compose up --build -d
@@ -12,7 +14,7 @@ docker compose ps
 docker compose logs --tail=100 nexora-hq
 ```
 
-Open `http://localhost:8000`. The application serves the dashboard and API from one origin. The container runs as a non-root user, drops Linux capabilities, disables privilege escalation, uses a read-only root filesystem, and keeps SQLite data in a named volume.
+Open `http://localhost:8000`. The application serves the dashboard and API from one origin. The container runs as a non-root user, drops Linux capabilities, disables privilege escalation, uses a read-only root filesystem, and keeps SQLite data in a named volume. Production requires administrator credentials; the dashboard presents a sign-in screen and protects registry/activity APIs with a signed session cookie.
 
 The health check calls `/api/health`; it fails if the database is not ready. External venture integrations remain unconfigured. This is a self-hostable container baseline, not proof that a hosted production deployment exists.
 
@@ -42,7 +44,7 @@ Restore only with the service stopped, and retain a copy of the existing databas
 
 - Put the service behind HTTPS and a trusted reverse proxy.
 - Restrict network access to the API and documentation endpoints according to your deployment.
-- Add authentication before storing or serving private company information.
+- Configure admin credentials and add login-attempt rate limiting before exposing the service to the public internet.
 - Configure backups, retention, monitoring, alerting, and tested restore procedures.
 - Keep secrets outside the image and repository.
 - Verify the container health state and test `/api/health`, `/api/ventures`, and `/api/activity` after deployment.

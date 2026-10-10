@@ -42,7 +42,10 @@ jobs:
           set -euo pipefail
           docker volume create nexora-hq-ci-data >/dev/null
           trap 'docker rm -f nexora-hq-ci >/dev/null 2>&1 || true; docker volume rm nexora-hq-ci-data >/dev/null 2>&1 || true' EXIT
-          docker run -d --name nexora-hq-ci --publish 127.0.0.1:18743:8000 --volume nexora-hq-ci-data:/data nexora-hq:ci
+          ADMIN_PASSWORD="ci-only-password"
+          ADMIN_PASSWORD_HASH="$(python -c 'from src.nexora_hq.auth import hash_password; print(hash_password("ci-only-password"))')"
+          SESSION_SECRET="$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+          docker run -d --name nexora-hq-ci --publish 127.0.0.1:18743:8000 --volume nexora-hq-ci-data:/data -e NEXORA_ADMIN_PASSWORD_HASH="$ADMIN_PASSWORD_HASH" -e NEXORA_SESSION_SECRET="$SESSION_SECRET" nexora-hq:ci
           for attempt in $(seq 1 30); do
             if curl --silent --fail --max-time 3 http://127.0.0.1:18743/api/health >/tmp/nexora-health.json; then
               break
@@ -51,8 +54,11 @@ jobs:
           done
           python -c 'import json; d=json.load(open("/tmp/nexora-health.json")); assert d["status"] == "ok" and d["database"] == "ready"'
           test "$(docker exec nexora-hq-ci id -u)" = "10001"
-          curl --silent --show-error --fail --max-time 3 http://127.0.0.1:18743/api/ventures | python -c 'import json,sys; d=json.load(sys.stdin); assert d["count"] == 2; assert all(v["connection_state"] == "not_connected" for v in d["items"])'
-          curl --silent --show-error --fail --max-time 3 'http://127.0.0.1:18743/api/activity?limit=2' | python -c 'import json,sys; d=json.load(sys.stdin); assert d["count"] == 2 and len(d["items"]) == 2'
+          curl --silent --show-error --fail --max-time 3 -D /tmp/nexora-login-headers -o /tmp/nexora-login-body -H 'Content-Type: application/json' --data "{\"password\":\"$ADMIN_PASSWORD\"}" http://127.0.0.1:18743/api/auth/login
+          SESSION_COOKIE="$(sed -n 's/^[Ss]et-[Cc]ookie: nexora_session=\([^;]*\).*/\1/p' /tmp/nexora-login-headers | tr -d '\r' | head -n 1)"
+          test -n "$SESSION_COOKIE"
+          curl --silent --show-error --fail --max-time 3 -H "Cookie: nexora_session=$SESSION_COOKIE" http://127.0.0.1:18743/api/ventures | python -c 'import json,sys; d=json.load(sys.stdin); assert d["count"] == 2; assert all(v["connection_state"] == "not_connected" for v in d["items"])'
+          curl --silent --show-error --fail --max-time 3 -H "Cookie: nexora_session=$SESSION_COOKIE" 'http://127.0.0.1:18743/api/activity?limit=2' | python -c 'import json,sys; d=json.load(sys.stdin); assert d["count"] == 2 and len(d["items"]) == 2'
           curl --silent --show-error --fail --max-time 3 http://127.0.0.1:18743/ | grep -q 'Nexora HQ'
       - name: Check patch whitespace
         run: git diff --check

@@ -5,16 +5,27 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Literal
+from urllib.parse import urlsplit
 
-from fastapi import FastAPI, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
+from .auth import create_session, verify_password, verify_session
 from .config import Settings
 from .database import HQDatabase
 
 logger = logging.getLogger("nexora_hq")
+
+
+class AuthStatus(BaseModel):
+    auth_required: bool
+    authenticated: bool
+
+
+class LoginRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=1024)
 
 
 class HealthResponse(BaseModel):
@@ -78,10 +89,25 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
         openapi_url=None if production else "/openapi.json",
     )
     application.state.database = database
+    application.state.settings = settings
+
+    def require_auth(request: Request) -> None:
+        current_settings = request.app.state.settings
+        if current_settings.admin_password_hash and not verify_session(
+            request.cookies.get("nexora_session"), current_settings.session_secret or ""
+        ):
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+    def validate_same_origin(request: Request) -> None:
+        origin = request.headers.get("origin")
+        if origin and urlsplit(origin).netloc != request.headers.get("host"):
+            raise HTTPException(status_code=403, detail="Cross-origin request rejected")
 
     @application.middleware("http")
     async def add_security_headers(request: Request, call_next):
         response = await call_next(request)
+        if request.url.path.startswith("/api/auth/"):
+            response.headers.setdefault("Cache-Control", "no-store")
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
@@ -99,6 +125,54 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
         # Log only the exception class; do not expose messages, paths, or request secrets.
         logger.error("Unhandled HQ API error type=%s", type(exc).__name__)
         return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+    @application.get("/api/auth/status", response_model=AuthStatus, tags=["authentication"])
+    def auth_status(request: Request) -> AuthStatus:
+        current_settings = request.app.state.settings
+        auth_required = current_settings.admin_password_hash is not None
+        authenticated = not auth_required or verify_session(
+            request.cookies.get("nexora_session"), current_settings.session_secret or ""
+        )
+        return AuthStatus(auth_required=auth_required, authenticated=authenticated)
+
+    @application.post("/api/auth/login", response_model=AuthStatus, tags=["authentication"])
+    def login(payload: LoginRequest, request: Request, response: Response) -> AuthStatus:
+        validate_same_origin(request)
+        current_settings = request.app.state.settings
+        password_hash = current_settings.admin_password_hash
+        session_secret = current_settings.session_secret
+        if not password_hash or not session_secret:
+            raise HTTPException(status_code=409, detail="Authentication is not configured")
+        if not verify_password(payload.password, password_hash):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        response.set_cookie(
+            key="nexora_session",
+            value=create_session(session_secret),
+            max_age=8 * 60 * 60,
+            path="/",
+            secure=current_settings.environment == "production",
+            httponly=True,
+            samesite="strict",
+        )
+        response.headers["Cache-Control"] = "no-store"
+        return AuthStatus(auth_required=True, authenticated=True)
+
+    @application.post("/api/auth/logout", response_model=AuthStatus, tags=["authentication"])
+    def logout(request: Request, response: Response) -> AuthStatus:
+        validate_same_origin(request)
+        current_settings = request.app.state.settings
+        response.delete_cookie(
+            key="nexora_session",
+            path="/",
+            secure=current_settings.environment == "production",
+            httponly=True,
+            samesite="strict",
+        )
+        response.headers["Cache-Control"] = "no-store"
+        return AuthStatus(
+            auth_required=current_settings.admin_password_hash is not None,
+            authenticated=current_settings.admin_password_hash is None,
+        )
 
     @application.get("/api/health", response_model=HealthResponse, tags=["system"])
     def health(request: Request) -> HealthResponse | JSONResponse:
@@ -120,12 +194,16 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
             venture_integrations="not_configured",
         )
 
-    @application.get("/api/ventures", response_model=VentureList, tags=["ventures"])
+    @application.get(
+        "/api/ventures", response_model=VentureList, tags=["ventures"], dependencies=[Depends(require_auth)]
+    )
     def ventures(request: Request) -> VentureList:
         items = request.app.state.database.list_ventures()
         return VentureList(count=len(items), items=items)
 
-    @application.get("/api/activity", response_model=ActivityList, tags=["activity"])
+    @application.get(
+        "/api/activity", response_model=ActivityList, tags=["activity"], dependencies=[Depends(require_auth)]
+    )
     def activity(
         request: Request,
         limit: Annotated[int, Query(ge=1, le=100)] = 50,

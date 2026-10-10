@@ -50,6 +50,8 @@ test("primary controls expose accessible names and live status", () => {
   assert.match(html, /id="venture-search"[^>]*aria-label="Search ventures"/);
   assert.match(html, /id="mobile-menu"[^>]*aria-label="Toggle navigation"/);
   assert.match(html, /id="toast"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(html, /id="login-password"[^>]*autocomplete="current-password"/);
+  assert.match(js, /event.key === "Escape"/);
 });
 
 test("HTML uses external assets rather than inline scripts or event handlers", () => {
