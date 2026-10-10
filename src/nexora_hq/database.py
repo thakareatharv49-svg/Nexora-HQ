@@ -5,7 +5,6 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-
 DEFAULT_VENTURES = (
     {
         "id": "ai-software-developer",
@@ -34,9 +33,10 @@ class HQDatabase:
     """Small SQLite repository with short-lived connections per operation."""
 
     def __init__(self, path: str | Path):
-        self.path = str(path)
+        raw_path = str(path)
+        self.path = raw_path if raw_path == ":memory:" else str(Path(raw_path).expanduser())
         if self.path != ":memory:":
-            Path(self.path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
+            Path(self.path).resolve().parent.mkdir(parents=True, exist_ok=True)
         self._memory_connection: sqlite3.Connection | None = None
 
     def _connect(self) -> sqlite3.Connection:
@@ -114,6 +114,18 @@ class HQDatabase:
                 (limit,),
             ).fetchall()
             return [dict(row) for row in rows]
+        finally:
+            if owns_connection:
+                connection.close()
+
+    def ping(self) -> bool:
+        connection = self._connect()
+        owns_connection = self.path != ":memory:"
+        try:
+            connection.execute("SELECT 1").fetchone()
+            return True
+        except sqlite3.Error:
+            return False
         finally:
             if owns_connection:
                 connection.close()

@@ -15,6 +15,7 @@ def test_health_endpoint_marks_integrations_unconfigured(tmp_path):
     assert response.json() == {
         "status": "ok",
         "service": "nexora-hq",
+        "database": "ready",
         "venture_integrations": "not_configured",
     }
 
@@ -55,3 +56,14 @@ def test_dashboard_is_served_by_backend_when_static_assets_exist(tmp_path):
         response = client.get("/")
     assert response.status_code == 200
     assert "Nexora HQ" in response.text
+
+def test_health_reports_degraded_when_database_is_unavailable(tmp_path):
+    def unavailable():
+        return False
+
+    with make_client(tmp_path) as client:
+        client.app.state.database.ping = unavailable
+        response = client.get("/api/health")
+    assert response.status_code == 503
+    assert response.json()["status"] == "degraded"
+    assert response.json()["database"] == "unavailable"
