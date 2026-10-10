@@ -3,6 +3,8 @@
 ## Current safeguards
 - The API is read-only: no endpoint can mutate a venture or execute a workload.
 - The browser contains no tokens or credentials.
+- The FastAPI runtime sets a restrictive Content Security Policy, frame denial, MIME-sniffing protection, referrer policy, and restrictive browser feature policy.
+- Interactive API docs and the OpenAPI schema are disabled in production mode.
 - Runtime configuration is validated; production mode rejects an in-memory database.
 - The health endpoint reports database readiness separately from venture integration readiness.
 - Unexpected API errors return a generic message; the log entry includes only the exception class, not the exception message or request data.
