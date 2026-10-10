@@ -95,7 +95,54 @@
 
   const allActivity = $("#all-activity-list");
   if (allActivity) allActivity.replaceChildren(...activityItems.map(makeActivity));
+
+  async function syncHQApi() {
+    try {
+      const healthResponse = await fetch("/api/health", { headers: { Accept: "application/json" }, cache: "no-store" });
+      if (!healthResponse.ok) return;
+      const health = await healthResponse.json();
+      if (health.status !== "ok" || health.service !== "nexora-hq") return;
+
+      $("#api-status-text").textContent = "HQ API CONNECTED";
+      $("#api-status-dot").style.background = "#70d8c4";
+      document.documentElement.dataset.hqApi = "connected";
+
+      const [ventureResponse, activityResponse] = await Promise.all([
+        fetch("/api/ventures", { headers: { Accept: "application/json" }, cache: "no-store" }),
+        fetch("/api/activity?limit=50", { headers: { Accept: "application/json" }, cache: "no-store" })
+      ]);
+      if (ventureResponse.ok) {
+        const registry = await ventureResponse.json();
+        const values = $(".stat-card .stat-value");
+        if (values[0] && Number.isInteger(registry.count)) values[0].textContent = String(registry.count).padStart(2, "0");
+        if (values[1] && Array.isArray(registry.items)) {
+          const connected = registry.items.filter(item => item.connection_state === "connected").length;
+          values[1].textContent = String(connected).padStart(2, "0");
+        }
+      }
+      if (activityResponse.ok) {
+        const payload = await activityResponse.json();
+        if (Array.isArray(payload.items)) {
+          const records = payload.items.map(item => ({
+            symbol: item.kind === "REGISTRY" ? "◇" : item.kind === "ARCHITECTURE" ? "⌁" : "✦",
+            tone: item.kind === "REGISTRY" ? "blue" : item.kind === "ARCHITECTURE" ? "teal" : "violet",
+            title: item.title,
+            detail: item.detail,
+            meta: item.source === "hq" ? "HQ record · persisted" : "External record · read-only",
+            kind: item.kind
+          }));
+          $("#activity-list")?.replaceChildren(...records.slice(0, 3).map(makeActivity));
+          $("#all-activity-list")?.replaceChildren(...records.map(makeActivity));
+          $(".panel-footnote").forEach(note => { note.textContent = "Persisted HQ records; no external venture activity is connected."; });
+        }
+      }
+    } catch {
+      // Static hosting has no HQ API; keep the explicit static-foundation state.
+    }
+  }
+
   const hashPage = location.hash.slice(1);
   if (pages.includes(hashPage)) showPage(hashPage);
   else showPage("overview");
+  syncHQApi();
 })();
