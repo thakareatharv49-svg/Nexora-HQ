@@ -19,6 +19,7 @@ def test_admin_login_protects_registry_and_activity(tmp_path, monkeypatch):
 
         login = client.post("/api/auth/login", json={"password": "correct password"})
         assert login.status_code == 200
+        assert login.headers["cache-control"] == "no-store"
         assert login.json() == {"auth_required": True, "authenticated": True}
         set_cookie = login.headers["set-cookie"].lower()
         assert "httponly" in set_cookie
