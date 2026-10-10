@@ -130,6 +130,10 @@
         fetch("/api/ventures", { headers: { Accept: "application/json" }, cache: "no-store" }),
         fetch("/api/activity?limit=50", { headers: { Accept: "application/json" }, cache: "no-store" })
       ]);
+      if (ventureResponse.status === 401 || activityResponse.status === 401) {
+        await syncHQApi();
+        return;
+      }
       if (ventureResponse.ok) {
         const registry = await ventureResponse.json();
         const values = $$(".stat-card .stat-value");
