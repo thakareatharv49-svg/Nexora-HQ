@@ -105,6 +105,20 @@ class HQDatabase:
             if owns_connection:
                 connection.close()
 
+    def record_activity(self, kind: str, title: str, detail: str, source: str = "hq") -> int:
+        connection = self._connect()
+        owns_connection = self.path != ":memory:"
+        try:
+            cursor = connection.execute(
+                "INSERT INTO activity (kind, title, detail, source) VALUES (?, ?, ?, ?)",
+                (kind, title, detail, source),
+            )
+            connection.commit()
+            return int(cursor.lastrowid)
+        finally:
+            if owns_connection:
+                connection.close()
+
     def list_activity(self, limit: int = 50) -> list[dict[str, Any]]:
         connection = self._connect()
         owns_connection = self.path != ":memory:"
