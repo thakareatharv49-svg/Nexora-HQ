@@ -104,8 +104,8 @@
       if (health.status !== "ok" || health.service !== "nexora-hq") return;
 
       $("#api-status-text").textContent = "HQ API CONNECTED";
-      $("#api-status-dot").style.background = "#70d8c4";
       document.documentElement.dataset.hqApi = "connected";
+      document.documentElement.classList.add("api-connected");
 
       const [ventureResponse, activityResponse] = await Promise.all([
         fetch("/api/ventures", { headers: { Accept: "application/json" }, cache: "no-store" }),
