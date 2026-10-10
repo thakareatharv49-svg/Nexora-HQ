@@ -1,4 +1,9 @@
-from src.nexora_hq.auth import create_session, hash_password, verify_password, verify_session
+from src.nexora_hq.auth import (
+    create_session,
+    hash_password,
+    verify_password,
+    verify_session,
+)
 
 
 def test_scrypt_password_hash_verifies_only_the_correct_password():
