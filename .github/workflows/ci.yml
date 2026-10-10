@@ -1,0 +1,27 @@
+name: Nexora HQ CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, "feat/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  static-site:
+    name: Validate HQ dashboard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: node --check apps/web/app.js
+      - name: Run dashboard regression tests
+        run: node --test tests/*.test.cjs
+      - name: Check whitespace errors
+        run: git diff --check
