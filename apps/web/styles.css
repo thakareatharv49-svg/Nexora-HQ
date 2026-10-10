@@ -34,3 +34,7 @@
 .form-error{min-height:16px;margin:9px 0 0;color:#ffaaa8;font-size:10px}
 .dialog-actions{display:flex;justify-content:flex-end;align-items:center;gap:16px;margin-top:14px}
 @media(max-width:520px){.venture-dialog{padding:19px}.dialog-heading h2{font-size:20px}.toolbar .primary-button{width:100%}}
+
+.edit-venture-button{border:1px solid #344863;border-radius:6px;background:#132039;color:#b9d1f5;padding:6px 9px;font-size:10px;font-weight:700;cursor:pointer}
+.edit-venture-button:hover{border-color:#79adff;background:#1a2b46}
+.edit-venture-button:focus-visible{outline:2px solid #8cb4f3;outline-offset:2px}
