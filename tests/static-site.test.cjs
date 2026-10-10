@@ -53,6 +53,6 @@ test("primary controls expose accessible names and live status", () => {
 });
 
 test("HTML uses external assets rather than inline scripts or event handlers", () => {
-  assert.doesNotMatch(html, /<script(?![^>]*\\bsrc=)[^>]*>/i);
-  assert.doesNotMatch(html, /\\son[a-z]+\\s*=/i);
+  assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>/i);
+  assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
 });
