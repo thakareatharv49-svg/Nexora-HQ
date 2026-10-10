@@ -1,36 +1,47 @@
 # Nexora HQ Roadmap
 
+Nexora HQ is the parent-company visibility layer. It does not execute venture workloads or manage each venture's generated products.
+
 ## M0 — Repository foundation
 - [x] Establish a separate HQ boundary and repository.
-- [x] Create responsive dashboard shell with honest unconnected states.
-- [x] Document architecture, security, contracts and roadmap.
-- [ ] Validate shell and establish CI.
+- [x] Document architecture, security, integration contract and roadmap.
+- [x] Create a responsive dashboard shell with explicit unconnected states.
+- [x] Add CI checks for dashboard structure and JavaScript syntax.
+- [ ] Verify a successful GitHub Pages deployment.
 
-## M1 — Registry and API
-- [ ] Define and validate venture registry schema.
-- [ ] Add backend health and registry endpoints.
-- [ ] Add environment-based configuration validation.
-- [ ] Add linting, unit tests and CI.
+## M1 — Complete HQ interface
+- [x] Add Overview, Venture Registry, Activity and Settings views.
+- [x] Add client-side venture search and responsive navigation.
+- [x] Distinguish illustrative setup records from live external activity.
+- [x] Add accessible status messages, reduced-motion support and mobile layouts.
+- [ ] Run browser-based accessibility and interaction checks.
 
-## M2 — AI Software Developer adapter
-- [ ] Confirm stable venture-level health/status/activity API.
-- [ ] Implement read-only adapter with timeouts and freshness.
-- [ ] Test unavailable, stale, malformed and rate-limited responses.
-- [ ] Display venture-level data only; generated apps remain within that venture.
+## M2 — Backend and persistence
+- [x] Select and document the initial backend/runtime (FastAPI + SQLite).
+- [x] Implement health, venture registry and HQ activity endpoints.
+- [x] Persist registry records and HQ activity records.
+- [x] Validate activity query limits and response schemas.
+- [x] Add API regression tests for health, persistence, validation and dashboard serving.
+- [x] Connect the dashboard to same-origin HQ API endpoints while retaining static-hosting fallback.
+- [ ] Verify backend tests pass in GitHub Actions and review production database/migration requirements.
 
-## M3 — AI Open Source Contributor adapter
-- [ ] Confirm its separate stable status contract.
-- [ ] Implement adapter and failure-isolation tests.
-- [ ] Display source timestamps and connection state.
+## M3 — Operational control center
+- [ ] Add authentication, authorization, session handling and audit logging.
+- [ ] Add system health, stale-data indicators and error reporting.
+- [ ] Add configuration management with validation and safe defaults.
+- [ ] Add observability, backups and recovery guidance.
 
-## M4 — Production hardening
-- [ ] Authentication, authorization and audit logging.
-- [ ] Secret management, monitoring, backups and recovery.
-- [ ] Deployment pipeline and staging end-to-end tests.
+## M4 — Production readiness
+- [ ] Review threat model, secrets handling, dependency updates and least privilege.
+- [ ] Test keyboard navigation, screen-reader labels, contrast and responsive layouts.
+- [ ] Verify CI and Pages deployment with actual successful workflow runs.
+- [ ] Document local development, deployment, recovery and incident procedures.
 
-## Acceptance criteria
-- Demo data is never represented as live.
-- Each venture shows connection state and last update.
-- One adapter failing does not break other cards.
-- HQ cannot trigger missions, publish apps or mutate venture state.
-- Generated apps are not individual HQ ventures.
+## Later — Venture integrations and limits
+- [ ] Integrate AI Software Developer through a read-only venture-level adapter.
+- [ ] Integrate AI Open Source Contributor through its own read-only adapter.
+- [ ] Test timeout, unavailable, malformed, stale and rate-limited upstream responses.
+- [ ] Define operational limits and policies after the core system is stable.
+
+## Acceptance rule
+A milestone is complete only when its acceptance checks have run and their results are verified. A commit or a workflow definition alone is not proof of a successful deployment.
