@@ -5,7 +5,6 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-
 DEFAULT_VENTURES = (
     {
         "id": "ai-software-developer",
