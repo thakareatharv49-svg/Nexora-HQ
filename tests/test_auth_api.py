@@ -26,8 +26,16 @@ def test_admin_login_protects_registry_and_activity(tmp_path, monkeypatch):
         assert "secure" in set_cookie
         assert "samesite=strict" in set_cookie
         assert client.get("/api/ventures").status_code == 200
-        assert client.get("/api/activity").status_code == 200
+        activity = client.get("/api/activity")
+        assert activity.status_code == 200
+        assert any(item["title"] == "Administrator signed in" for item in activity.json()["items"])
 
         logout = client.post("/api/auth/logout")
         assert logout.status_code == 200
         assert client.get("/api/ventures").status_code == 401
+
+        assert client.post("/api/auth/login", json={"password": "correct password"}).status_code == 200
+        audit = client.get("/api/activity").json()["items"]
+        titles = [item["title"] for item in audit]
+        assert "Administrator signed out" in titles
+        assert "Administrator signed in" in titles
