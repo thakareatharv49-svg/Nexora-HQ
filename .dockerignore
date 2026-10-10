@@ -13,3 +13,4 @@ data
 *.sqlite3
 *.db
 tests
+node_modules
