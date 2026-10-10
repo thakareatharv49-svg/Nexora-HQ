@@ -15,3 +15,22 @@
 .login-button:hover{background:#b2ceff}
 .auth-footnote{font-size:10px;color:#7386a3;text-align:center;margin:17px 0 0}
 @media(max-width:480px){.auth-card{padding:22px}.auth-card h1{font-size:24px}}
+
+
+.primary-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #8cb4f3;border-radius:8px;background:#8cb4f3;color:#081323;font-size:11px;font-weight:800;padding:11px 14px;cursor:pointer;white-space:nowrap}
+.primary-button:hover{background:#b2ceff}
+.primary-button:disabled{opacity:.6;cursor:wait}
+.venture-dialog{width:min(100% - 28px,520px);max-height:min(90vh,760px);overflow:auto;border:1px solid #344863;border-radius:16px;background:linear-gradient(145deg,#111d31,#0c1423);color:var(--text);padding:25px;box-shadow:0 24px 90px #0009}
+.venture-dialog::backdrop{background:#050a14d9;backdrop-filter:blur(8px)}
+.dialog-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:20px}
+.dialog-heading h2{font-size:22px;letter-spacing:-.5px;margin:0}
+.dialog-heading p:not(.eyebrow){font-size:11px;line-height:1.65;color:var(--muted);margin:8px 0 0}
+.venture-dialog label{display:block;font-size:11px;color:#c7d4e8;margin:15px 0 7px}
+.venture-dialog input,.venture-dialog textarea{display:block;width:100%;border:1px solid #344863;border-radius:8px;background:#091323;color:var(--text);padding:11px 12px;font:inherit;font-size:12px;outline:0}
+.venture-dialog textarea{resize:vertical;min-height:86px;line-height:1.6}
+.venture-dialog input:focus,.venture-dialog textarea:focus{border-color:#79adff;box-shadow:0 0 0 3px #4776b21c}
+.venture-dialog input::placeholder{color:#71819b}
+.optional-label{font-size:8px;letter-spacing:.7px;color:var(--muted);margin-left:6px}
+.form-error{min-height:16px;margin:9px 0 0;color:#ffaaa8;font-size:10px}
+.dialog-actions{display:flex;justify-content:flex-end;align-items:center;gap:16px;margin-top:14px}
+@media(max-width:520px){.venture-dialog{padding:19px}.dialog-heading h2{font-size:20px}.toolbar .primary-button{width:100%}}

@@ -26,6 +26,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000). The FastAPI application ser
 - `GET /api/auth/status`, `POST /api/auth/login`, `POST /api/auth/logout` — session-based administrator sign-in.
 - Registry and activity endpoints require a valid administrator session in production.
 - `GET /api/ventures` — persisted venture registry.
+- `POST /api/ventures` — register a venture in the HQ-owned registry; this does not connect to or modify the venture itself.
 - `GET /api/activity?limit=50` — HQ-owned activity records; limit must be between 1 and 100.
 - `GET /docs` — interactive API documentation in development/test mode; disabled in production.
 

@@ -3,6 +3,8 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const pages = ["overview", "ventures", "activity", "settings"];
+  let apiConnected = false;
+  let ventureItems = [];
   const activityItems = [
     { symbol: "✦", tone: "violet", title: "HQ foundation created", detail: "Dashboard shell and venture boundaries established.", meta: "Foundation record · illustrative", kind: "SYSTEM" },
     { symbol: "◇", tone: "blue", title: "Venture registry initialized", detail: "Two independent ventures listed for future monitoring.", meta: "Foundation record · illustrative", kind: "REGISTRY" },
@@ -50,11 +52,109 @@
     return row;
   }
 
+  function makeVentureCard(item) {
+    const card = document.createElement("article");
+    card.className = "venture-card";
+    card.dataset.venture = item.id;
+    card.dataset.search = [item.name, item.category, item.description].join(" ").toLowerCase();
+
+    const top = document.createElement("div");
+    top.className = "venture-card-top";
+    const logo = document.createElement("div");
+    logo.className = "venture-logo " + (/open source/i.test(item.category) ? "logo-violet" : "logo-blue");
+    logo.textContent = String(item.name || "NX").trim().split(/\\s+/).map(part => part[0] || "").join("").slice(0, 2).toUpperCase();
+    const state = document.createElement("span");
+    state.className = "state-pill";
+    const stateDot = document.createElement("i");
+    state.append(stateDot, document.createTextNode(
+      item.connection_state === "connected" ? "Connected" :
+      item.connection_state === "degraded" ? "Degraded" :
+      item.connection_state === "unavailable" ? "Unavailable" : "Not connected"
+    ));
+    top.append(logo, state);
+
+    const category = document.createElement("p");
+    category.className = "venture-category";
+    category.textContent = item.category;
+    const title = document.createElement("h3");
+    title.textContent = item.name;
+    const description = document.createElement("p");
+    description.className = "venture-description";
+    description.textContent = item.description;
+
+    const metadata = document.createElement("div");
+    metadata.className = "venture-metadata";
+    const categoryMeta = document.createElement("span");
+    const categoryIcon = document.createElement("i");
+    categoryIcon.className = "mini-icon";
+    categoryIcon.textContent = "⌘";
+    categoryMeta.append(categoryIcon, document.createTextNode(" " + item.category));
+    const ownershipMeta = document.createElement("span");
+    const ownershipIcon = document.createElement("i");
+    ownershipIcon.className = "mini-icon";
+    ownershipIcon.textContent = "↗";
+    ownershipMeta.append(ownershipIcon, document.createTextNode(" Independent venture"));
+    metadata.append(categoryMeta, ownershipMeta);
+
+    const footer = document.createElement("div");
+    footer.className = "venture-card-footer";
+    const footerState = document.createElement("span");
+    footerState.className = "footer-state";
+    const footerDot = document.createElement("span");
+    footerDot.className = "status-dot";
+    const statusText = item.connection_state === "connected" ? "Connected" :
+      item.connection_state === "degraded" ? "Needs attention" :
+      item.connection_state === "unavailable" ? "Unavailable" : "Awaiting adapter";
+    footerState.append(footerDot, document.createTextNode(statusText));
+    let repositoryLink = null;
+    if (item.repository_url) {
+      try {
+        const parsed = new URL(item.repository_url);
+        if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+          repositoryLink = document.createElement("a");
+          repositoryLink.href = parsed.href;
+          repositoryLink.target = "_blank";
+          repositoryLink.rel = "noreferrer";
+          repositoryLink.textContent = "View repository ↗";
+        }
+      } catch {
+        repositoryLink = null;
+      }
+    }
+    if (repositoryLink) {
+      footer.append(footerState, repositoryLink);
+    } else {
+      const noRepository = document.createElement("span");
+      noRepository.className = "footer-muted";
+      noRepository.textContent = "Repository not linked";
+      footer.append(footerState, noRepository);
+    }
+    card.append(top, category, title, description, metadata, footer);
+    return card;
+  }
+
   function renderRegistry(query = "") {
     const grid = $("#registry-grid");
     if (!grid) return;
     const normalized = query.trim().toLowerCase();
-    const cards = $$(".venture-card", $("#venture-grid")).filter(card =>
+    if (apiConnected) {
+      const cards = ventureItems.filter(item =>
+        [item.name, item.category, item.description].join(" ").toLowerCase().includes(normalized)
+      );
+      grid.replaceChildren(...cards.map(makeVentureCard));
+      $("#search-count").textContent = "Showing " + cards.length + (cards.length === 1 ? " venture" : " ventures");
+      $("#registry-total").textContent = ventureItems.length + " REGISTERED";
+      const noResults = cards.length === 0;
+      $("#empty-search").classList.toggle("hidden", !noResults);
+      grid.classList.toggle("hidden", noResults);
+      $("#empty-search-title").textContent = normalized ? "No ventures found" : "No ventures registered yet";
+      $("#empty-search-description").textContent = normalized
+        ? "Try a different search term."
+        : "Add a venture to begin building your HQ registry.";
+      return;
+    }
+    const source = $("#venture-grid");
+    const cards = $$(".venture-card", source).filter(card =>
       (card.dataset.search || "").toLowerCase().includes(normalized) ||
       $("h3", card).textContent.toLowerCase().includes(normalized)
     );
@@ -91,6 +191,71 @@
   $("#registry-grid")?.addEventListener("click", event => {
     const card = event.target.closest(".venture-card");
     if (card && !event.target.closest("a")) notify("Venture details will be available after the registry API is implemented.");
+  });
+
+  $("#add-venture")?.addEventListener("click", () => {
+    const dialog = $("#venture-dialog");
+    if (!apiConnected || !dialog) {
+      notify("Venture registration requires the HQ API.");
+      return;
+    }
+    $("#venture-form-error").textContent = "";
+    dialog.showModal();
+    $("#venture-name").focus();
+  });
+
+  function closeVentureDialog() {
+    const dialog = $("#venture-dialog");
+    if (dialog?.open) dialog.close();
+    $("#venture-form")?.reset();
+    $("#venture-form-error").textContent = "";
+  }
+
+  $("#close-venture-dialog")?.addEventListener("click", closeVentureDialog);
+  $("#cancel-venture")?.addEventListener("click", closeVentureDialog);
+  $("#venture-form")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const error = $("#venture-form-error");
+    const saveButton = $("#save-venture");
+    error.textContent = "";
+    const payload = {
+      name: $("#venture-name").value.trim(),
+      category: $("#venture-category").value.trim(),
+      description: $("#venture-description").value.trim(),
+      repository_url: $("#venture-repository").value.trim() || null
+    };
+    saveButton.disabled = true;
+    try {
+      const response = await fetch("/api/ventures", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (response.status === 401) {
+        closeVentureDialog();
+        await syncHQApi();
+        notify("Your session expired. Sign in before adding a venture.");
+        return;
+      }
+      if (response.status === 409) {
+        error.textContent = "A venture with this name is already registered.";
+        return;
+      }
+      if (!response.ok) {
+        error.textContent = response.status === 422
+          ? "Check the required fields and repository URL."
+          : "Could not add the venture. Try again.";
+        return;
+      }
+      await syncHQApi();
+      closeVentureDialog();
+      showPage("ventures");
+      notify("Venture added to the HQ registry.");
+    } catch {
+      error.textContent = "Could not reach the HQ server. Try again.";
+    } finally {
+      saveButton.disabled = false;
+    }
   });
 
   const allActivity = $("#all-activity-list");
@@ -136,11 +301,16 @@
       }
       if (ventureResponse.ok) {
         const registry = await ventureResponse.json();
-        const values = $$(".stat-card .stat-value");
+        const values = $(".stat-card .stat-value");
         if (values[0] && Number.isInteger(registry.count)) values[0].textContent = String(registry.count).padStart(2, "0");
-        if (values[1] && Array.isArray(registry.items)) {
-          const connected = registry.items.filter(item => item.connection_state === "connected").length;
-          values[1].textContent = String(connected).padStart(2, "0");
+        if (Array.isArray(registry.items)) {
+          apiConnected = true;
+          ventureItems = registry.items;
+          $("#add-venture")?.classList.remove("hidden");
+          const connected = ventureItems.filter(item => item.connection_state === "connected").length;
+          if (values[1]) values[1].textContent = String(connected).padStart(2, "0");
+          $("#venture-grid")?.replaceChildren(...ventureItems.map(makeVentureCard));
+          renderRegistry($("#venture-search")?.value || "");
         }
       }
       if (activityResponse.ok) {

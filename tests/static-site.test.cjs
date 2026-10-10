@@ -58,3 +58,12 @@ test("HTML uses external assets rather than inline scripts or event handlers", (
   assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>/i);
   assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
 });
+
+test("registry management form is accessible and handles API records safely", () => {
+  assert.match(html, /id="add-venture"[^>]*type="button"/);
+  assert.match(html, /<dialog[^>]*id="venture-dialog"/);
+  assert.match(html, /id="venture-form-error"[^>]*role="alert"/);
+  assert.match(js, /method: "POST"/);
+  assert.match(js, /textContent = item\.name/);
+  assert.match(js, /A venture with this name is already registered/);
+});

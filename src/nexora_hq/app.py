@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
 
 from .auth import create_session, verify_password, verify_session
 from .config import Settings
@@ -31,6 +31,13 @@ class AuthStatus(BaseModel):
 
 class LoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=1024)
+
+
+class VentureCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    category: str = Field(min_length=2, max_length=60)
+    description: str = Field(min_length=10, max_length=500)
+    repository_url: AnyHttpUrl | None = None
 
 
 class HealthResponse(BaseModel):
@@ -242,6 +249,34 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
     def ventures(request: Request) -> VentureList:
         items = request.app.state.database.list_ventures()
         return VentureList(count=len(items), items=items)
+
+    @application.post(
+        "/api/ventures",
+        response_model=Venture,
+        status_code=201,
+        tags=["ventures"],
+        dependencies=[Depends(require_auth)],
+    )
+    def create_venture(payload: VentureCreate, request: Request) -> Venture:
+        repository_url = (
+            str(payload.repository_url) if payload.repository_url is not None else None
+        )
+        try:
+            item = request.app.state.database.create_venture(
+                name=payload.name,
+                category=payload.category,
+                description=payload.description,
+                repository_url=repository_url,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        request.app.state.database.record_activity(
+            "REGISTRY",
+            f"Venture registered: {item['name']}",
+            "A venture record was added to the HQ registry.",
+            "hq",
+        )
+        return Venture.model_validate(item)
 
     @application.get(
         "/api/activity", response_model=ActivityList, tags=["activity"], dependencies=[Depends(require_auth)]

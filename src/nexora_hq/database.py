@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sqlite3
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -135,6 +136,53 @@ class HQDatabase:
                 (limit,),
             ).fetchall()
             return [dict(row) for row in rows]
+        finally:
+            if owns_connection:
+                connection.close()
+
+    def create_venture(
+        self,
+        name: str,
+        category: str,
+        description: str,
+        repository_url: str | None = None,
+    ) -> dict[str, Any]:
+        """Create a HQ-owned registry record without contacting the venture."""
+        connection = self._connect()
+        owns_connection = self.path != ":memory:"
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            existing = connection.execute(
+                "SELECT id FROM ventures WHERE lower(name) = lower(?)",
+                (name.strip(),),
+            ).fetchone()
+            if existing is not None:
+                raise ValueError("A venture with this name already exists")
+            venture_id = uuid.uuid4().hex[:12]
+            connection.execute(
+                """
+                INSERT INTO ventures
+                    (id, name, category, description, repository_url, connection_state)
+                VALUES (?, ?, ?, ?, ?, 'not_connected')
+                """,
+                (
+                    venture_id,
+                    name.strip(),
+                    category.strip(),
+                    description.strip(),
+                    repository_url,
+                ),
+            )
+            row = connection.execute(
+                "SELECT id, name, category, description, repository_url, "
+                "connection_state, created_at, updated_at FROM ventures WHERE id = ?",
+                (venture_id,),
+            ).fetchone()
+            connection.commit()
+            return dict(row)
+        except Exception:
+            connection.rollback()
+            raise
         finally:
             if owns_connection:
                 connection.close()
