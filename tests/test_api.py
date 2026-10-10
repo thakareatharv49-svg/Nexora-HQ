@@ -18,6 +18,10 @@ def test_health_endpoint_marks_integrations_unconfigured(tmp_path):
         "database": "ready",
         "venture_integrations": "not_configured",
     }
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+    assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
 
 
 def test_venture_registry_is_persisted_and_explicitly_disconnected(tmp_path):

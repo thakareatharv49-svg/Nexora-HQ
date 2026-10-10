@@ -67,13 +67,32 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
         yield
         database.close()
 
+    production = settings.environment == "production"
     application = FastAPI(
         title="Nexora HQ API",
         description="Parent-company venture registry and HQ-owned activity. Venture adapters are not enabled.",
         version="0.1.0",
         lifespan=lifespan,
+        docs_url=None if production else "/docs",
+        redoc_url=None if production else "/redoc",
+        openapi_url=None if production else "/openapi.json",
     )
     application.state.database = database
+
+    @application.middleware("http")
+    async def add_security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; style-src 'self'; "
+            "img-src 'self' data:; connect-src 'self'; object-src 'none'; "
+            "base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        )
+        return response
 
     @application.exception_handler(Exception)
     async def unexpected_error(_: Request, exc: Exception) -> JSONResponse:

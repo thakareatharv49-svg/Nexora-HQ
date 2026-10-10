@@ -37,3 +37,10 @@ test("responsive and reduced-motion styles are present", () => {
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /\.hidden\s*\{/);
 });
+
+
+test("API connection indicator is compatible with a strict content security policy", () => {
+  assert.match(js, /classList\.add\("api-connected"\)/);
+  assert.doesNotMatch(js, /style\.background/);
+  assert.match(css, /\.api-connected #api-status-dot/);
+});
