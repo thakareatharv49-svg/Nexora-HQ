@@ -27,7 +27,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000). The FastAPI application ser
 - `GET /api/activity?limit=50` — HQ-owned activity records; limit must be between 1 and 100.
 - `GET /docs` — interactive API documentation.
 
-SQLite stores HQ registry and activity records in `data/nexora-hq.sqlite3` by default. Set `NEXORA_DB_PATH` to use a different path. The database is initialized with the two known ventures and clearly labeled HQ setup records. External venture integrations remain unconfigured.
+SQLite stores HQ registry and activity records in `data/nexora-hq.sqlite3` by default. Set `NEXORA_DB_PATH` to use a different path and `NEXORA_ENV` to `development`, `test`, or `production`. Runtime configuration is validated; production mode rejects an in-memory database. The database is initialized with the two known ventures and clearly labeled HQ setup records. External venture integrations remain unconfigured. The health endpoint returns a degraded response when the database readiness probe fails.
 
 For the static frontend alone, run `python -m http.server 4173 --directory apps/web` and open [http://localhost:4173](http://localhost:4173). Static hosting does not include the API; the UI stays in its explicit static-foundation state.
 
@@ -39,6 +39,7 @@ Requires Node.js 22 or compatible modern Node.js and Python 3.12+:
 node --check apps/web/app.js
 node --test tests/*.test.cjs
 python -m compileall -q src tests
+python -m ruff check src tests
 python -m pytest -q
 ```
 
