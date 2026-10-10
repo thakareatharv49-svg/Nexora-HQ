@@ -23,10 +23,13 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [x] Validate activity query limits and response schemas.
 - [x] Add API regression tests for health, persistence, validation and dashboard serving.
 - [x] Connect the dashboard to same-origin HQ API endpoints while retaining static-hosting fallback.
-- [ ] Verify backend tests pass in GitHub Actions and review production database/migration requirements.
+- [x] Add validated runtime environment configuration and a database readiness probe.
+- [x] Add degraded-health behavior and generic error responses that avoid exposing exception details.
+- [x] Add tests for invalid configuration and database-unavailable health.
+- [ ] Verify lint and backend tests pass in GitHub Actions and review production database/migration requirements.
 
 ## M3 — Operational control center
-- [ ] Add authentication, authorization, session handling and audit logging.
+- [ ] Add authentication, authorization, session handling and audit logging before private production use.
 - [ ] Add system health, stale-data indicators and error reporting.
 - [ ] Add configuration management with validation and safe defaults.
 - [ ] Add observability, backups and recovery guidance.
