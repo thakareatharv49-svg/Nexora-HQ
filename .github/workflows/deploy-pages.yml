@@ -35,10 +35,6 @@ jobs:
         run: node --check apps/web/app.js
       - name: Run frontend regression tests
         run: node --test tests/static-site.test.cjs
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - name: Validate static assets
         run: |
           test -s apps/web/index.html
@@ -46,10 +42,33 @@ jobs:
           test -s apps/web/app.js
           grep -q 'Nexora HQ' apps/web/index.html
           grep -q 'Not connected' apps/web/index.html
+      - name: Check whether GitHub Pages is enabled
+        id: pages
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages")"
+          if [[ "${status}" == "200" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::GitHub Pages is not enabled or is not accessible (HTTP ${status}). Enable Pages in repository Settings > Pages to publish. Validation will still run."
+          fi
+      - name: Configure Pages
+        if: steps.pages.outputs.enabled == 'true'
+        uses: actions/configure-pages@v5
       - name: Upload site
+        if: steps.pages.outputs.enabled == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web
       - name: Deploy
+        if: steps.pages.outputs.enabled == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
