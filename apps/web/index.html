@@ -1,20 +1,104 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080d19"><meta name="description" content="Nexora HQ parent-company venture overview">
-<title>Nexora HQ</title><link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d19">
+  <meta name="description" content="Nexora HQ — the parent-company control center for venture-level visibility.">
+  <title>Nexora HQ · Overview</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
-<div class="shell">
-<aside class="sidebar"><a class="brand" href="#overview"><span class="mark">N</span><span>NEXORA<small>HEADQUARTERS</small></span></a><p class="nav-label">WORKSPACE</p><a class="nav active" href="#overview">◫ &nbsp; Overview</a><a class="nav" href="#ventures">◇ &nbsp; Ventures <span>2</span></a><a class="nav" href="#activity">↗ &nbsp; Activity</a><div class="side-status"><i></i><div><b>HQ foundation</b><small>Integrations not connected</small></div></div></aside>
-<main id="overview"><header><div>Nexora <span>/</span> Overview</div><div class="top-right"><label>● FOUNDATION MODE</label><b class="avatar">NX</b></div></header>
-<section class="hero"><div><p class="eyebrow">● PARENT COMPANY CONTROL CENTER</p><h1>One view. Every venture.</h1><p>Monitor Nexora's ventures from one place. Live connections will appear when each venture exposes a verified read-only status feed.</p></div><div class="orb"><strong>N</strong></div></section>
-<div class="section-title"><div><h2>Company overview</h2><p>Venture-level visibility, without duplicating venture operations.</p></div><span class="warning">LIVE DATA NOT CONNECTED</span></div>
-<section class="stats"><article><small>Registered ventures</small><strong>02</strong><p>Configured in the HQ plan</p></article><article><small>Connected sources</small><strong>00 <em>/ 02</em></strong><p>Waiting for verified adapters</p></article><article><small>Operational status</small><strong class="unknown">Unknown</strong><p>No live health checks yet</p></article><article><small>Last synchronization</small><strong>—</strong><p>No source has synchronized</p></article></section>
-<div class="section-title" id="ventures"><div><h2>Your ventures</h2><p>Each venture remains independently owned and operated.</p></div><span class="muted">02 VENTURES PLANNED</span></div>
-<section class="ventures"><article class="venture"><div class="venture-top"><b class="logo blue">SD</b><span class="tag">● Not connected</span></div><small class="category">SOFTWARE &amp; AI</small><h3>AI Software Developer</h3><p>Autonomous software factory, mission execution, and generated products.</p><div class="metrics"><div><small>Factory status</small><b>Not available</b></div><div><small>Last update</small><b>—</b></div></div><footer><span>● Read-only adapter pending</span><a href="https://github.com/thakareatharv49-svg/AI-Software-Company" target="_blank" rel="noreferrer">Repository ↗</a></footer></article>
-<article class="venture"><div class="venture-top"><b class="logo violet">OS</b><span class="tag">● Not connected</span></div><small class="category violet-text">OPEN SOURCE</small><h3>AI Open Source Contributor</h3><p>Open-source discovery, contribution workflows, and venture progress.</p><div class="metrics"><div><small>Contribution status</small><b>Not available</b></div><div><small>Last update</small><b>—</b></div></div><footer><span>● Read-only adapter pending</span><span>Repository link pending</span></footer></article></section>
-<section class="bottom" id="activity"><article class="panel"><h2>Recent activity</h2><p>Cross-venture events from verified sources</p><div class="empty"><b>⌁</b><strong>No connected activity feeds</strong><span>Activity appears after a venture adapter is implemented and validated.</span></div></article><article class="panel"><h2>Operating principles</h2><p>How HQ stays reliable and safe</p><ul><li><b>01</b><div><strong>Read-only by default</strong><span>HQ observes ventures; it does not run their workflows.</span></div></li><li><b>02</b><div><strong>Honest freshness</strong><span>Every live value carries a source and update time.</span></div></li><li><b>03</b><div><strong>Independent failures</strong><span>One disconnected venture never hides the other.</span></div></li></ul></article></section>
-<div class="page-footer"><span>© 2026 Nexora HQ</span><span>Independent ventures · Read-only integrations · No live data connected</span></div>
-</main></div><script src="app.js"></script></body></html>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#overview" aria-label="Nexora HQ overview"><span class="brand-mark">N</span><span class="brand-copy">NEXORA<small>HEADQUARTERS</small></span></a>
+      <p class="nav-label">WORKSPACE</p>
+      <nav class="nav-list">
+        <a class="nav-link active" href="#overview" data-view="overview"><span class="nav-icon">⌂</span> Overview</a>
+        <a class="nav-link" href="#ventures" data-view="ventures"><span class="nav-icon">◇</span> Ventures <span class="nav-count">2</span></a>
+        <a class="nav-link" href="#activity" data-view="activity"><span class="nav-icon">↗</span> Activity</a>
+        <a class="nav-link" href="#settings" data-view="settings"><span class="nav-icon">⚙</span> Settings</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="connection-card"><span class="status-dot"></span><div><strong>Foundation mode</strong><small>External ventures are not connected</small></div></div>
+      <div class="profile"><div class="profile-avatar">NX</div><div><strong>Nexora HQ</strong><small>Parent company</small></div><span class="profile-menu">···</span></div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <header class="topbar">
+        <div class="breadcrumbs"><span>Nexora</span><span class="crumb-slash">/</span><strong id="current-crumb">Overview</strong></div>
+        <div class="topbar-actions"><span class="mode-pill"><span class="status-dot"></span> FOUNDATION MODE</span><button class="icon-button mobile-menu" id="mobile-menu" aria-label="Toggle navigation" aria-expanded="false">☰</button><button class="avatar-button" aria-label="Nexora account">NX</button></div>
+      </header>
+
+      <section class="view-section" id="overview-view" data-page="overview">
+        <div class="page-heading"><div><p class="eyebrow"><span class="eyebrow-dot"></span> PARENT COMPANY CONTROL CENTER</p><h1>One view. Every venture.</h1><p class="heading-subtitle">A clear picture of the businesses building Nexora. Connections will be enabled after each venture is stable.</p></div><div class="date-chip"><span class="date-icon">◷</span><span><strong>HQ workspace</strong><small>Local foundation</small></span></div></div>
+        <div class="notice-banner"><span class="notice-icon">i</span><div><strong>Integrations are intentionally paused</strong><p>This dashboard does not fetch live venture data yet. No live health, metrics, or activity are being fabricated.</p></div><span class="notice-tag">NOT CONNECTED</span></div>
+
+        <div class="section-heading"><div><h2>Company overview</h2><p>Your portfolio at a glance</p></div><span class="subtle-label">FOUNDATION SNAPSHOT</span></div>
+        <div class="stats-grid">
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Registered ventures</span><span class="stat-icon violet">◇</span></div><div class="stat-value">02</div><div class="stat-foot"><span class="neutral-dot"></span> Listed in HQ registry</div></article>
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Connected ventures</span><span class="stat-icon blue">↔</span></div><div class="stat-value">00</div><div class="stat-foot"><span class="neutral-dot"></span> Integrations deferred</div></article>
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Active incidents</span><span class="stat-icon amber">△</span></div><div class="stat-value">—</div><div class="stat-foot">Unavailable until monitoring exists</div></article>
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Latest sync</span><span class="stat-icon teal">⟳</span></div><div class="stat-value stat-word">Not yet</div><div class="stat-foot">No external sources configured</div></article>
+        </div>
+
+        <div class="section-heading section-heading-spaced" id="ventures"><div><h2>Your ventures</h2><p>Independent products, one parent company</p></div><button class="text-button" data-go="ventures">View venture registry <span>→</span></button></div>
+        <div class="venture-grid" id="venture-grid">
+          <article class="venture-card" data-venture="developer" data-search="ai software developer software factory autonomous apps engineering">
+            <div class="venture-card-top"><div class="venture-logo logo-blue">A<span>·</span></div><span class="state-pill"><i></i> Not connected</span></div>
+            <p class="venture-category">SOFTWARE ENGINEERING</p><h3>AI Software Developer</h3><p class="venture-description">Autonomous software factory for planning, building, testing, and publishing applications.</p>
+            <div class="venture-metadata"><span><i class="mini-icon">⌘</i> Software factory</span><span><i class="mini-icon">↗</i> Independent venture</span></div>
+            <div class="venture-card-footer"><span class="footer-state"><span class="status-dot"></span> Awaiting adapter</span><a href="https://github.com/thakareathar49-svg/AI-Software-Company" target="_blank" rel="noreferrer">View repository ↗</a></div>
+          </article>
+          <article class="venture-card" data-venture="opensource" data-search="ai open source contributor github community contributions repositories">
+            <div class="venture-card-top"><div class="venture-logo logo-violet">OS</div><span class="state-pill"><i></i> Not connected</span></div>
+            <p class="venture-category">OPEN SOURCE</p><h3>AI Open Source Contributor</h3><p class="venture-description">A separate venture focused on discovering open-source work and supporting contributions.</p>
+            <div class="venture-metadata"><span><i class="mini-icon">⌘</i> Contribution workflow</span><span><i class="mini-icon">↗</i> Independent venture</span></div>
+            <div class="venture-card-footer"><span class="footer-state"><span class="status-dot"></span> Awaiting adapter</span><span class="footer-muted">Repository not linked</span></div>
+          </article>
+        </div>
+
+        <div class="lower-grid" id="activity">
+          <section class="panel activity-panel"><div class="panel-heading"><div><h2>HQ activity</h2><p>Changes recorded inside this workspace</p></div><button class="text-button" data-go="activity">View all <span>→</span></button></div>
+            <div class="activity-list" id="activity-list">
+              <article class="activity-row"><span class="activity-symbol symbol-violet">✦</span><div class="activity-copy"><strong>HQ foundation created</strong><p>Dashboard shell and venture boundaries established.</p><small>Foundation record · illustrative</small></div><span class="activity-kind">SYSTEM</span></article>
+              <article class="activity-row"><span class="activity-symbol symbol-blue">◇</span><div class="activity-copy"><strong>Venture registry initialized</strong><p>Two independent ventures listed for future monitoring.</p><small>Foundation record · illustrative</small></div><span class="activity-kind">REGISTRY</span></article>
+              <article class="activity-row"><span class="activity-symbol symbol-teal">⌁</span><div class="activity-copy"><strong>Integration boundary documented</strong><p>Future adapters are restricted to venture-level read-only status.</p><small>Foundation record · illustrative</small></div><span class="activity-kind">ARCHITECTURE</span></article>
+            </div>
+            <p class="panel-footnote">These are setup notes, not live external activity.</p>
+          </section>
+          <section class="panel readiness-panel"><div class="panel-heading"><div><h2>Readiness checklist</h2><p>What is in place before integrations</p></div><span class="checklist-count">3 / 5</span></div>
+            <div class="readiness-list"><div class="readiness-item"><span class="check-mark">✓</span><span><strong>Separate venture ownership</strong><small>HQ does not manage generated apps</small></span><span class="ready-label">READY</span></div><div class="readiness-item"><span class="check-mark">✓</span><span><strong>Read-only integration contract</strong><small>Scope and permissions documented</small></span><span class="ready-label">READY</span></div><div class="readiness-item"><span class="check-mark">✓</span><span><strong>Honest connection states</strong><small>No fabricated live metrics</small></span><span class="ready-label">READY</span></div><div class="readiness-item"><span class="pending-mark">○</span><span><strong>Persistent registry API</strong><small>Planned for backend milestone</small></span><span class="pending-label">PLANNED</span></div><div class="readiness-item"><span class="pending-mark">○</span><span><strong>Automated test and deploy gate</strong><small>Requires verified CI and Pages run</small></span><span class="pending-label">PLANNED</span></div></div>
+          </section>
+        </div>
+        <footer class="page-footer"><span>© Nexora HQ · Parent-company workspace</span><span><span class="status-dot"></span> Foundation mode · no live connections</span></footer>
+      </section>
+
+      <section class="view-section hidden" id="ventures-view" data-page="ventures">
+        <div class="page-heading compact-heading"><div><p class="eyebrow">PORTFOLIO</p><h1>Venture registry</h1><p class="heading-subtitle">The ventures that make up Nexora, each with its own ownership and execution boundary.</p></div><span class="subtle-label">2 REGISTERED</span></div>
+        <div class="toolbar"><label class="search-box"><span>⌕</span><input id="venture-search" type="search" placeholder="Search ventures…" autocomplete="off" aria-label="Search ventures"></label><span class="toolbar-note" id="search-count">Showing 2 ventures</span></div>
+        <div class="venture-grid registry-grid" id="registry-grid"></div>
+        <div class="empty-state hidden" id="empty-search"><span>⌕</span><h3>No ventures found</h3><p>Try a different search term.</p></div>
+        <div class="panel boundary-panel"><div class="panel-heading"><div><h2>Ownership boundary</h2><p>HQ provides visibility, not execution</p></div></div><div class="boundary-grid"><div><span class="boundary-icon">◉</span><strong>HQ owns</strong><p>Venture registry, company-level visibility, connection health, and cross-venture activity summaries.</p></div><div><span class="boundary-icon">◇</span><strong>Each venture owns</strong><p>Its workloads, repositories, generated products, project execution, credentials, and internal operational decisions.</p></div></div></div>
+      </section>
+
+      <section class="view-section hidden" id="activity-view" data-page="activity">
+        <div class="page-heading compact-heading"><div><p class="eyebrow">AUDIT TRAIL</p><h1>HQ activity</h1><p class="heading-subtitle">Workspace setup notes and architecture decisions. External venture events will appear only after adapters are implemented.</p></div><span class="subtle-label">LOCAL FOUNDATION RECORDS</span></div>
+        <div class="notice-banner"><span class="notice-icon">i</span><div><strong>No external event stream is connected</strong><p>The entries below describe setup work only; they are not activity pulled from either venture.</p></div></div>
+        <div class="panel full-activity-panel"><div class="panel-heading"><div><h2>Recent records</h2><p>Foundation activity · newest first</p></div><span class="state-pill"><i></i> Local only</span></div><div class="activity-list expanded-activity" id="all-activity-list"></div></div>
+      </section>
+
+      <section class="view-section hidden" id="settings-view" data-page="settings">
+        <div class="page-heading compact-heading"><div><p class="eyebrow">WORKSPACE CONFIGURATION</p><h1>Settings</h1><p class="heading-subtitle">Current HQ configuration and safety boundaries.</p></div></div>
+        <div class="settings-grid">
+          <section class="panel settings-panel"><div class="panel-heading"><div><h2>Workspace</h2><p>Identity and operating mode</p></div></div><div class="setting-row"><span><strong>Workspace name</strong><small>Parent-company control center</small></span><span class="setting-value">Nexora HQ</span></div><div class="setting-row"><span><strong>Environment</strong><small>No backend or external adapters active</small></span><span class="setting-value">Foundation</span></div><div class="setting-row"><span><strong>Data source</strong><small>Static workspace shell</small></span><span class="setting-value">Local</span></div></section>
+          <section class="panel settings-panel"><div class="panel-heading"><div><h2>Security boundaries</h2><p>Principles that integrations must preserve</p></div></div><div class="setting-row"><span><strong>Venture permissions</strong><small>Read-only status and activity</small></span><span class="ready-label">REQUIRED</span></div><div class="setting-row"><span><strong>Secret storage</strong><small>Never expose credentials in browser code</small></span><span class="ready-label">REQUIRED</span></div><div class="setting-row"><span><strong>Workload ownership</strong><small>Execution remains inside each venture</small></span><span class="ready-label">PRESERVED</span></div></section>
+        </div>
+        <div class="notice-banner settings-notice"><span class="notice-icon">i</span><div><strong>Configuration editing is not enabled yet</strong><p>Settings are read-only until the backend, authentication, validation, and audit trail are implemented.</p></div></div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
