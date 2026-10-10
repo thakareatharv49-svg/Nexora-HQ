@@ -1,7 +1,8 @@
 # Security Model
 
 ## Current safeguards
-- The API is read-only: no endpoint can mutate a venture or execute a workload.
+- HQ registry records can be added through the authenticated API; no endpoint can mutate an external venture workload or execute code.
+- Registry writes affect HQ-owned metadata only and are recorded in the HQ activity log.
 - The browser contains no tokens or credentials.
 - Production requires an environment-supplied scrypt password hash and a 32+ character session-signing secret.
 - Successful administrator sign-in and sign-out events are persisted in the HQ activity log; rejected sign-ins emit a generic warning without logging the submitted password.
