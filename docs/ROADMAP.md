@@ -29,10 +29,12 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [x] Add degraded-health behavior and generic error responses that avoid exposing exception details.
 - [x] Add tests for invalid configuration and database-unavailable health.
 - [x] Verify frontend tests, Python compilation, Ruff, backend tests, Docker build and live container smoke test in [CI run #34](https://github.com/thakareatharv49-svg/Nexora-HQ/actions/runs/38094301034).
+- [x] Verify authenticated production registry/activity access and sign-in behavior in [CI run #37](https://github.com/thakareatharv49-svg/Nexora-HQ/actions/runs/38094769516).
 - [ ] Review production database migration and long-term persistence requirements.
 
 ## M3 — Operational control center
-- [ ] Add authentication, authorization, session handling and audit logging before private production use.
+- [x] Add production admin authentication, signed eight-hour sessions, and authorization on registry/activity APIs.
+- [ ] Add login-attempt rate limiting and admin audit logging before public internet exposure.
 - [x] Add system health, database readiness and safe error responses.
 - [ ] Add stale-data and last-success indicators after venture adapters exist.
 - [x] Add runtime configuration validation and safe defaults.
@@ -40,7 +42,8 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [ ] Add automated restore tests, monitoring, alerting and incident procedures.
 
 ## M4 — Production readiness
-- [ ] Review threat model, secrets handling, dependency updates and least privilege for a real deployment.
+- [x] Require production password hashes and session secrets through environment configuration; keep them out of browser assets.
+- [ ] Review the full threat model, dependency update policy and least privilege for a real deployment.
 - [x] Add a hardened self-hostable Docker/Compose deployment and container build validation.
 - [x] Smoke-test the running container as a non-root user and verify primary API routes in CI.
 - [x] Document local development, container deployment, backup and recovery steps.
