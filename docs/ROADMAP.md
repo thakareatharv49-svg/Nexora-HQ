@@ -7,7 +7,7 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [x] Document architecture, security, integration contract and roadmap.
 - [x] Create a responsive dashboard shell with explicit unconnected states.
 - [x] Add CI checks for dashboard structure and JavaScript syntax.
-- [x] Validate the static site in the Pages workflow and enable Pages during first deployment when supported.
+- [x] Make Pages publishing conditional on repository Pages configuration and avoid false CI failures when publishing is not enabled.
 - [ ] Verify a successful GitHub Pages deployment from its actual workflow result.
 
 ## M1 — Complete HQ interface
