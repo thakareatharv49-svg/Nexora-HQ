@@ -3,6 +3,9 @@
 ## Current safeguards
 - The API is read-only: no endpoint can mutate a venture or execute a workload.
 - The browser contains no tokens or credentials.
+- Production requires an environment-supplied scrypt password hash and a 32+ character session-signing secret.
+- The admin session uses a signed, eight-hour cookie marked HttpOnly, SameSite=Strict, and Secure in production.
+- Registry and activity endpoints require an authenticated admin session in production; health and authentication status expose no registry data.
 - The FastAPI runtime sets a restrictive Content Security Policy, frame denial, MIME-sniffing protection, referrer policy, and restrictive browser feature policy.
 - Interactive API docs and the OpenAPI schema are disabled in production mode.
 - Runtime configuration is validated; production mode rejects an in-memory database.
@@ -11,7 +14,7 @@
 - SQLite is used only for HQ-owned registry and activity records.
 
 ## Before private production use
-- Add authentication, authorization, session protections, and an auditable administrative identity model.
+- Add login-attempt rate limiting and an auditable administrative identity model before exposing authentication to the public internet.
 - Keep credentials server-side in a secret manager; never commit them or bundle them into browser assets.
 - Use repository-scoped, read-only permissions wherever possible.
 - Set explicit request timeouts and bounded retries for each future adapter.
