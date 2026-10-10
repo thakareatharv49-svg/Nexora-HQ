@@ -49,13 +49,23 @@ def _write_consistent_copy(source: Path, destination: Path) -> None:
     )
     os.close(handle)
     temporary = Path(temporary_name)
+    source_connection = None
+    destination_connection = None
     try:
-        with sqlite3.connect(source, timeout=5) as source_connection:
-            with sqlite3.connect(temporary, timeout=5) as destination_connection:
-                source_connection.backup(destination_connection)
+        source_connection = sqlite3.connect(source, timeout=5)
+        destination_connection = sqlite3.connect(temporary, timeout=5)
+        source_connection.backup(destination_connection)
+        destination_connection.close()
+        destination_connection = None
+        source_connection.close()
+        source_connection = None
         _validate_hq_database(temporary)
         os.replace(temporary, destination)
     finally:
+        if destination_connection is not None:
+            destination_connection.close()
+        if source_connection is not None:
+            source_connection.close()
         temporary.unlink(missing_ok=True)
 
 
