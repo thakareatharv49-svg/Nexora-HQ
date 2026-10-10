@@ -1,0 +1,24 @@
+services:
+  nexora-hq:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nexora-hq:local
+    ports:
+      - "8000:8000"
+    environment:
+      NEXORA_ENV: production
+      NEXORA_DB_PATH: /data/nexora-hq.sqlite3
+    volumes:
+      - nexora-data:/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  nexora-data:

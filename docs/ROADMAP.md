@@ -37,7 +37,9 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 ## M4 — Production readiness
 - [ ] Review threat model, secrets handling, dependency updates and least privilege.
 - [ ] Test keyboard navigation, screen-reader labels, contrast and responsive layouts.
+- [x] Add a hardened self-hostable Docker/Compose deployment and container build validation.
 - [ ] Verify CI and Pages deployment with actual successful workflow runs.
+- [ ] Verify a deployment on an actual target host.
 - [ ] Document local development, deployment, recovery and incident procedures.
 
 ## Later — Venture integrations and limits
