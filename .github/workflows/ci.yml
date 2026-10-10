@@ -2,8 +2,6 @@ name: Nexora HQ CI
 
 on:
   pull_request:
-  push:
-    branches: [main, "feat/**"]
 
 permissions:
   contents: read
