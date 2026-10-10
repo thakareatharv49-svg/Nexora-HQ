@@ -44,3 +44,15 @@ test("API connection indicator is compatible with a strict content security poli
   assert.doesNotMatch(js, /style\.background/);
   assert.match(css, /\.api-connected #api-status-dot/);
 });
+
+
+test("primary controls expose accessible names and live status", () => {
+  assert.match(html, /id="venture-search"[^>]*aria-label="Search ventures"/);
+  assert.match(html, /id="mobile-menu"[^>]*aria-label="Toggle navigation"/);
+  assert.match(html, /id="toast"[^>]*role="status"[^>]*aria-live="polite"/);
+});
+
+test("HTML uses external assets rather than inline scripts or event handlers", () => {
+  assert.doesNotMatch(html, /<script(?![^>]*\\bsrc=)[^>]*>/i);
+  assert.doesNotMatch(html, /\\son[a-z]+\\s*=/i);
+});
