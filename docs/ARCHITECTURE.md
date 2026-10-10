@@ -1,26 +1,37 @@
 # Architecture
 
+Nexora HQ is the parent-company visibility layer. The current application uses a FastAPI server, SQLite persistence for HQ-owned records, and a static frontend served by the same app for local/self-hosted use.
+
 ```text
                        Nexora HQ
-             venture registry + dashboard
-                  /                \
-        read-only adapter    read-only adapter
-              /                    \
- AI Software Developer    AI Open Source Contributor
- factory + generated apps OSS discovery + contributions
+          dashboard + registry + HQ activity
+                         |
+                  read-only API
+                  /            \
+      AI Software Developer   AI Open Source Contributor
+      factory + generated     OSS discovery + contributions
+      apps and previews       owned by its venture
 ```
 
 ## HQ owns
-- Venture display metadata and registry.
-- High-level cross-venture status and recent activity.
-- Adapter connection state and freshness.
+- Venture display metadata and registry records.
+- HQ-owned activity/audit records.
+- Company-level connection state and health indicators.
+- Future adapter connection state, freshness, and high-level venture status.
 
 ## Ventures own
-- Their business logic, storage, credentials, logs, workflows and release lifecycle.
+- Their business logic, storage, credentials, logs, workflows, and release lifecycle.
 - All generated app details and previews remain in AI Software Developer.
+- Open-source discovery and contribution workflows remain in AI Open Source Contributor.
 
-## Implementation path
-Start with a static shell. Add a server-side API before connecting credentials or private data. FastAPI and PostgreSQL are candidates, but should be selected when the API and persistence requirements are confirmed.
+## Current runtime
+- FastAPI exposes `/api/health`, `/api/ventures`, and `/api/activity`.
+- SQLite stores the HQ registry and HQ activity records. The path is configurable with `NEXORA_DB_PATH`.
+- The dashboard detects the same-origin HQ API when available; static hosting remains clearly marked as foundation-only.
+- External venture adapters are not implemented and all ventures remain explicitly disconnected.
 
 ## Failure isolation
-Each adapter fails independently. Show stale/error state and last successful timestamp; never silently present stale values as current. HTTP 200 alone is not proof of operational health.
+Each future adapter must fail independently. Show stale/error state and last successful timestamp; never silently present stale values as current. HTTP 200 alone is not proof of operational health. The health endpoint checks database readiness separately from venture integration readiness.
+
+## Next architecture steps
+Add authentication/authorization before serving private company data, then operational observability, backup/recovery, and independently tested read-only venture adapters. Avoid cross-venture credentials and do not add controls that mutate venture workloads.
