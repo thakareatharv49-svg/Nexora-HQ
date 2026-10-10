@@ -1,6 +1,8 @@
 """FastAPI application for the Nexora HQ dashboard and read-only registry API."""
 from __future__ import annotations
 
+import hashlib
+import hmac
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -17,6 +19,9 @@ from .config import Settings
 from .database import HQDatabase
 
 logger = logging.getLogger("nexora_hq")
+LOGIN_FAILURE_LIMIT = 5
+LOGIN_WINDOW_SECONDS = 15 * 60
+LOGIN_LOCKOUT_SECONDS = 15 * 60
 
 
 class AuthStatus(BaseModel):
@@ -143,10 +148,37 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
         session_secret = current_settings.session_secret
         if not password_hash or not session_secret:
             raise HTTPException(status_code=409, detail="Authentication is not configured")
+        client_host = request.client.host if request.client else "unknown"
+        rate_limit_key = hmac.new(
+            session_secret.encode("utf-8"),
+            f"nexora-login-rate-limit:{client_host}".encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        database = request.app.state.database
+        retry_after = database.login_lockout_seconds(rate_limit_key)
+        if retry_after:
+            raise HTTPException(
+                status_code=429,
+                detail="Too many failed sign-in attempts. Try again later.",
+                headers={"Retry-After": str(retry_after)},
+            )
         if not verify_password(payload.password, password_hash):
+            retry_after = database.record_login_failure(
+                rate_limit_key,
+                failure_limit=LOGIN_FAILURE_LIMIT,
+                window_seconds=LOGIN_WINDOW_SECONDS,
+                lockout_seconds=LOGIN_LOCKOUT_SECONDS,
+            )
             logger.warning("Rejected administrator sign-in")
+            if retry_after:
+                raise HTTPException(
+                    status_code=429,
+                    detail="Too many failed sign-in attempts. Try again later.",
+                    headers={"Retry-After": str(retry_after)},
+                )
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        request.app.state.database.record_activity(
+        database.clear_login_failures(rate_limit_key)
+        database.record_activity(
             "SECURITY", "Administrator signed in", "A valid administrator session was created.", "auth"
         )
         response.set_cookie(
