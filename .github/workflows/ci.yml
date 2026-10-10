@@ -34,6 +34,18 @@ jobs:
         run: python -m ruff check src tests
       - name: Run backend tests
         run: python -m pytest -q
+      - name: Install browser test runner
+        run: npm install --no-save --no-package-lock @playwright/test@1.56.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run browser acceptance tests
+        env:
+          NEXORA_ENV: test
+          NEXORA_DB_PATH: data/e2e.sqlite3
+        run: |
+          export NEXORA_ADMIN_PASSWORD_HASH="$(python -c 'from src.nexora_hq.auth import hash_password; print(hash_password("e2e-test-password"))')"
+          export NEXORA_SESSION_SECRET="$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+          npx playwright test
       - name: Build production container
         run: docker build --tag nexora-hq:ci .
       - name: Smoke-test production container
