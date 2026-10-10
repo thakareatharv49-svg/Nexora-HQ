@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Mapping
+from collections.abc import Mapping
 
 
 @dataclass(frozen=True)
@@ -12,7 +12,7 @@ class Settings:
     database_path: str
 
     @classmethod
-    def from_env(cls, environ: Mapping[str, str] | None = None) -> "Settings":
+    def from_env(cls, environ: Mapping[str, str] | None = None) -> Settings:
         values = os.environ if environ is None else environ
         environment = values.get("NEXORA_ENV", "development").strip().lower()
         if environment not in {"development", "test", "production"}:
