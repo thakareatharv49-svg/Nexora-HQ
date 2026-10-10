@@ -144,7 +144,11 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
         if not password_hash or not session_secret:
             raise HTTPException(status_code=409, detail="Authentication is not configured")
         if not verify_password(payload.password, password_hash):
+            logger.warning("Rejected administrator sign-in")
             raise HTTPException(status_code=401, detail="Invalid credentials")
+        request.app.state.database.record_activity(
+            "SECURITY", "Administrator signed in", "A valid administrator session was created.", "auth"
+        )
         response.set_cookie(
             key="nexora_session",
             value=create_session(session_secret),
@@ -161,6 +165,12 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
     def logout(request: Request, response: Response) -> AuthStatus:
         validate_same_origin(request)
         current_settings = request.app.state.settings
+        if current_settings.admin_password_hash and verify_session(
+            request.cookies.get("nexora_session"), current_settings.session_secret or ""
+        ):
+            request.app.state.database.record_activity(
+                "SECURITY", "Administrator signed out", "An administrator session was ended.", "auth"
+            )
         response.delete_cookie(
             key="nexora_session",
             path="/",
