@@ -28,7 +28,7 @@
     <main class="main-content" id="main-content">
       <header class="topbar">
         <div class="breadcrumbs"><span>Nexora</span><span class="crumb-slash">/</span><strong id="current-crumb">Overview</strong></div>
-        <div class="topbar-actions"><span class="mode-pill" id="api-status-pill"><span class="status-dot" id="api-status-dot"></span><span id="api-status-text">STATIC FOUNDATION</span></span><button class="icon-button mobile-menu" id="mobile-menu" aria-label="Toggle navigation" aria-expanded="false">☰</button><button class="avatar-button" aria-label="Nexora account">NX</button></div>
+        <div class="topbar-actions"><span class="mode-pill" id="api-status-pill"><span class="status-dot" id="api-status-dot"></span><span id="api-status-text">STATIC FOUNDATION</span></span><button class="text-button hidden" id="sign-out" type="button">Sign out</button><button class="icon-button mobile-menu" id="mobile-menu" aria-label="Toggle navigation" aria-expanded="false">☰</button><button class="avatar-button" aria-label="Nexora account">NX</button></div>
       </header>
 
       <section class="view-section" id="overview-view" data-page="overview">
@@ -98,6 +98,21 @@
         <div class="notice-banner settings-notice"><span class="notice-icon">i</span><div><strong>Configuration editing is not enabled yet</strong><p>Settings are read-only until the backend, authentication, validation, and audit trail are implemented.</p></div></div>
       </section>
     </main>
+  </div>
+  <div class="auth-overlay hidden" id="auth-overlay">
+    <section class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <div class="brand auth-brand"><span class="brand-mark">N</span><span class="brand-copy">NEXORA<small>HEADQUARTERS</small></span></div>
+      <p class="eyebrow">PROTECTED WORKSPACE</p>
+      <h1 id="auth-title">Sign in to Nexora HQ</h1>
+      <p class="auth-description">Enter the administrator password to view the venture registry and HQ activity.</p>
+      <form id="login-form">
+        <label for="login-password">Administrator password</label>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" minlength="1" maxlength="1024" required>
+        <p class="auth-error" id="login-error" role="alert"></p>
+        <button class="login-button" type="submit">Sign in <span>→</span></button>
+      </form>
+      <p class="auth-footnote">Sessions expire automatically after eight hours.</p>
+    </section>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
