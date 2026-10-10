@@ -1,0 +1,36 @@
+name: Nexora HQ CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate HQ application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check frontend JavaScript syntax
+        run: node --check apps/web/app.js
+      - name: Run frontend regression tests
+        run: node --test tests/*.test.cjs
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Compile Python source and tests
+        run: python -m compileall -q src tests
+      - name: Run backend tests
+        run: python -m pytest -q
+      - name: Check patch whitespace
+        run: git diff --check
