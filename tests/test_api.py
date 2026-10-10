@@ -58,8 +58,11 @@ def test_dashboard_is_served_by_backend_when_static_assets_exist(tmp_path):
     assert "Nexora HQ" in response.text
 
 def test_health_reports_degraded_when_database_is_unavailable(tmp_path):
+    def unavailable():
+        return False
+
     with make_client(tmp_path) as client:
-        client.app.state.database.ping = lambda: False
+        client.app.state.database.ping = unavailable
         response = client.get("/api/health")
     assert response.status_code == 503
     assert response.json()["status"] == "degraded"
