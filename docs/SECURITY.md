@@ -5,6 +5,7 @@
 - The browser contains no tokens or credentials.
 - Production requires an environment-supplied scrypt password hash and a 32+ character session-signing secret.
 - Successful administrator sign-in and sign-out events are persisted in the HQ activity log; rejected sign-ins emit a generic warning without logging the submitted password.
+- Five incorrect sign-in attempts within 15 minutes trigger a 15-minute cooldown. The database stores a keyed pseudonymous identifier, not the raw client address.
 - The admin session uses a signed, eight-hour cookie marked HttpOnly, SameSite=Strict, and Secure in production.
 - Registry and activity endpoints require an authenticated admin session in production; health and authentication status expose no registry data.
 - The FastAPI runtime sets a restrictive Content Security Policy, frame denial, MIME-sniffing protection, referrer policy, and restrictive browser feature policy.
@@ -15,7 +16,7 @@
 - SQLite is used only for HQ-owned registry and activity records.
 
 ## Before private production use
-- Add login-attempt rate limiting and a richer administrative identity model before exposing authentication to the public internet.
+- Configure trusted proxy handling correctly when deployed behind a reverse proxy, and add a richer administrative identity model before public exposure.
 - Keep credentials server-side in a secret manager; never commit them or bundle them into browser assets.
 - Use repository-scoped, read-only permissions wherever possible.
 - Set explicit request timeouts and bounded retries for each future adapter.
