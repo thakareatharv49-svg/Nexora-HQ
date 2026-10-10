@@ -34,5 +34,7 @@ jobs:
         run: python -m ruff check src tests
       - name: Run backend tests
         run: python -m pytest -q
+      - name: Build production container
+        run: docker build --tag nexora-hq:ci .
       - name: Check patch whitespace
         run: git diff --check
