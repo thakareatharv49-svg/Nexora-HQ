@@ -22,7 +22,7 @@ def hash_password(password: str) -> str:
     digest = hashlib.scrypt(
         password.encode("utf-8"), salt=salt, n=SCRYPT_N, r=SCRYPT_R, p=SCRYPT_P, dklen=32
     )
-    return f"scrypt$${SCRYPT_N}$${SCRYPT_R}$${SCRYPT_P}$${salt.hex()}$${digest.hex()}"
+    return f"scrypt${SCRYPT_N}${SCRYPT_R}${SCRYPT_P}${salt.hex()}${digest.hex()}"
 
 
 def verify_password(password: str, encoded_hash: str) -> bool:
