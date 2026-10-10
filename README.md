@@ -47,7 +47,7 @@ python -m ruff check src tests
 python -m pytest -q
 ```
 
-GitHub Actions is configured to run frontend and backend checks for pull requests and feature-branch pushes. A successful deployment must be verified in the repository's Actions tab.
+GitHub Actions validates frontend behavior, Python compilation and lint, backend tests, builds the production image, and smoke-tests the running container on pull requests. A successful public Pages deployment or target-host deployment must still be verified in the repository's Actions tab and on the target host.
 
 ## Repository structure
 

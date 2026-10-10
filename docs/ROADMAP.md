@@ -8,14 +8,15 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [x] Create a responsive dashboard shell with explicit unconnected states.
 - [x] Add CI checks for dashboard structure and JavaScript syntax.
 - [x] Validate the static site in the Pages workflow and enable Pages during first deployment when supported.
-- [ ] Verify a successful GitHub Pages deployment.
+- [ ] Verify a successful GitHub Pages deployment from its actual workflow result.
 
 ## M1 — Complete HQ interface
 - [x] Add Overview, Venture Registry, Activity and Settings views.
 - [x] Add client-side venture search and responsive navigation.
 - [x] Distinguish illustrative setup records from live external activity.
 - [x] Add accessible status messages, reduced-motion support and mobile layouts.
-- [ ] Run browser-based accessibility and interaction checks.
+- [x] Add automated checks for accessible names, live status announcements and external-only scripts.
+- [ ] Run manual browser, keyboard, screen-reader, contrast and responsive checks.
 
 ## M2 — Backend and persistence
 - [x] Select and document the initial backend/runtime (FastAPI + SQLite).
@@ -27,22 +28,25 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [x] Add validated runtime environment configuration and a database readiness probe.
 - [x] Add degraded-health behavior and generic error responses that avoid exposing exception details.
 - [x] Add tests for invalid configuration and database-unavailable health.
-- [ ] Verify lint and backend tests pass in GitHub Actions and review production database/migration requirements.
+- [x] Verify frontend tests, Python compilation, Ruff, backend tests, Docker build and live container smoke test in [CI run #34](https://github.com/thakareatharv49-svg/Nexora-HQ/actions/runs/38094301034).
+- [ ] Review production database migration and long-term persistence requirements.
 
 ## M3 — Operational control center
 - [ ] Add authentication, authorization, session handling and audit logging before private production use.
-- [ ] Add system health, stale-data indicators and error reporting.
-- [ ] Add configuration management with validation and safe defaults.
-- [ ] Add observability, backups and recovery guidance.
+- [x] Add system health, database readiness and safe error responses.
+- [ ] Add stale-data and last-success indicators after venture adapters exist.
+- [x] Add runtime configuration validation and safe defaults.
+- [x] Document database backup and restore procedures.
+- [ ] Add automated restore tests, monitoring, alerting and incident procedures.
 
 ## M4 — Production readiness
-- [ ] Review threat model, secrets handling, dependency updates and least privilege.
-- [x] Add regression checks for primary accessible names, live status announcements, and external-only scripts.
-- [ ] Manually test keyboard navigation, screen-reader behavior, contrast and responsive layouts.
+- [ ] Review threat model, secrets handling, dependency updates and least privilege for a real deployment.
 - [x] Add a hardened self-hostable Docker/Compose deployment and container build validation.
-- [ ] Verify CI and Pages deployment with actual successful workflow runs.
+- [x] Smoke-test the running container as a non-root user and verify primary API routes in CI.
+- [x] Document local development, container deployment, backup and recovery steps.
+- [ ] Verify a successful GitHub Pages deployment from its actual workflow result.
 - [ ] Verify a deployment on an actual target host.
-- [ ] Document local development, deployment, recovery and incident procedures.
+- [ ] Complete manual accessibility and browser acceptance testing.
 
 ## Later — Venture integrations and limits
 - [ ] Integrate AI Software Developer through a read-only venture-level adapter.
