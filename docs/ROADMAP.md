@@ -7,6 +7,7 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [x] Document architecture, security, integration contract and roadmap.
 - [x] Create a responsive dashboard shell with explicit unconnected states.
 - [x] Add CI checks for dashboard structure and JavaScript syntax.
+- [x] Validate the static site in the Pages workflow and enable Pages during first deployment when supported.
 - [ ] Verify a successful GitHub Pages deployment.
 
 ## M1 — Complete HQ interface
@@ -36,7 +37,8 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 
 ## M4 — Production readiness
 - [ ] Review threat model, secrets handling, dependency updates and least privilege.
-- [ ] Test keyboard navigation, screen-reader labels, contrast and responsive layouts.
+- [x] Add regression checks for primary accessible names, live status announcements, and external-only scripts.
+- [ ] Manually test keyboard navigation, screen-reader behavior, contrast and responsive layouts.
 - [x] Add a hardened self-hostable Docker/Compose deployment and container build validation.
 - [ ] Verify CI and Pages deployment with actual successful workflow runs.
 - [ ] Verify a deployment on an actual target host.
