@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import sqlite3
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import quote
 
@@ -104,7 +104,7 @@ def restore_database(
 
     rollback_path: Path | None = None
     if destination_path.exists():
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         rollback_path = destination_path.with_name(
             f"{destination_path.name}.pre-restore-{timestamp}.sqlite3"
         )
