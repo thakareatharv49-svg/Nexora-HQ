@@ -1,0 +1,16 @@
+{
+  "venture_id": "ai-software-developer",
+  "display_name": "AI Software Developer",
+  "status": "unknown",
+  "integration": {
+    "state": "not_configured",
+    "checked_at": null,
+    "last_success_at": null,
+    "source": null
+  },
+  "summary": {
+    "active_workflows": null,
+    "recent_events": null
+  },
+  "recent_activity": []
+}
