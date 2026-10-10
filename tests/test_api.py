@@ -15,6 +15,7 @@ def test_health_endpoint_marks_integrations_unconfigured(tmp_path):
     assert response.json() == {
         "status": "ok",
         "service": "nexora-hq",
+        "database": "ready",
         "venture_integrations": "not_configured",
     }
 
