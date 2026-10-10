@@ -60,3 +60,36 @@ test("mobile navigation and keyboard focus remain usable", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Venture registry" })).toBeVisible();
   await expect(menu).toHaveAttribute("aria-expanded", "false");
 });
+
+test("administrator can register a venture without connecting its workload", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+
+  await page.goto("/");
+  const signIn = page.getByRole("dialog", { name: "Sign in to Nexora HQ" });
+  await page.getByLabel("Administrator password").fill("e2e-test-password");
+  await page.getByRole("button", { name: /Sign in/ }).click();
+  await expect(signIn).toBeHidden();
+
+  await page.getByRole("link", { name: /Ventures/ }).click();
+  await page.getByRole("button", { name: "Add venture" }).click();
+  const addDialog = page.getByRole("dialog", { name: "Add a venture" });
+  await expect(addDialog).toBeVisible();
+  await page.getByLabel("Venture name").fill("QA Observability Venture");
+  await page.getByLabel("Category").fill("Infrastructure");
+  await page.getByLabel("Description").fill("Tracks internal quality and operational readiness.");
+  await page.getByLabel("Repository URL").fill("https://github.com/example/qa-observability");
+  await page.getByRole("button", { name: "Add to registry" }).click();
+
+  await expect(addDialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: "QA Observability Venture" })).toBeVisible();
+  await expect(page.getByText("Not connected").last()).toBeVisible();
+
+  await page.getByRole("button", { name: "Add venture" }).click();
+  await page.getByLabel("Venture name").fill("QA Observability Venture");
+  await page.getByLabel("Category").fill("Infrastructure");
+  await page.getByLabel("Description").fill("Tracks internal quality and operational readiness.");
+  await page.getByRole("button", { name: "Add to registry" }).click();
+  await expect(page.getByRole("alert")).toHaveText("A venture with this name is already registered.");
+  expect(pageErrors).toEqual([]);
+});
