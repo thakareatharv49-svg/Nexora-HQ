@@ -187,6 +187,54 @@ class HQDatabase:
             if owns_connection:
                 connection.close()
 
+    def update_venture(
+        self, venture_id: str, updates: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Update HQ-owned venture metadata without contacting the venture."""
+        allowed = {"name", "category", "description", "repository_url"}
+        fields = {key: value for key, value in updates.items() if key in allowed}
+        if not fields:
+            raise ValueError("At least one editable field is required")
+        connection = self._connect()
+        owns_connection = self.path != ":memory:"
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            current = connection.execute(
+                "SELECT id, name FROM ventures WHERE id = ?", (venture_id,)
+            ).fetchone()
+            if current is None:
+                raise LookupError("Venture not found")
+            if "name" in fields:
+                duplicate = connection.execute(
+                    "SELECT id FROM ventures WHERE lower(name) = lower(?) AND id <> ?",
+                    (str(fields["name"]).strip(), venture_id),
+                ).fetchone()
+                if duplicate is not None:
+                    raise ValueError("A venture with this name already exists")
+                fields["name"] = str(fields["name"]).strip()
+            for field in ("category", "description"):
+                if field in fields:
+                    fields[field] = str(fields[field]).strip()
+            assignments = ", ".join(f"{field} = ?" for field in fields)
+            values = list(fields.values())
+            connection.execute(
+                f"UPDATE ventures SET {assignments}, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (*values, venture_id),
+            )
+            row = connection.execute(
+                "SELECT id, name, category, description, repository_url, "
+                "connection_state, created_at, updated_at FROM ventures WHERE id = ?",
+                (venture_id,),
+            ).fetchone()
+            connection.commit()
+            return dict(row)
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            if owns_connection:
+                connection.close()
+
     def login_lockout_seconds(self, identifier: str, now: int | None = None) -> int:
         """Return the remaining lockout time for a pseudonymous client key."""
         current = int(time.time()) if now is None else int(now)
