@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sqlite3
+import time
 from pathlib import Path
 from typing import Any
 
@@ -74,6 +75,12 @@ class HQDatabase:
                     source TEXT NOT NULL DEFAULT 'hq',
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS login_attempts (
+                    identifier TEXT PRIMARY KEY,
+                    failure_count INTEGER NOT NULL,
+                    window_started_at INTEGER NOT NULL,
+                    locked_until INTEGER
+                );
                 """
             )
             count = connection.execute("SELECT COUNT(*) FROM ventures").fetchone()[0]
@@ -128,6 +135,99 @@ class HQDatabase:
                 (limit,),
             ).fetchall()
             return [dict(row) for row in rows]
+        finally:
+            if owns_connection:
+                connection.close()
+
+    def login_lockout_seconds(self, identifier: str, now: int | None = None) -> int:
+        """Return the remaining lockout time for a pseudonymous client key."""
+        current = int(time.time()) if now is None else int(now)
+        connection = self._connect()
+        owns_connection = self.path != ":memory:"
+        try:
+            row = connection.execute(
+                "SELECT locked_until FROM login_attempts WHERE identifier = ?",
+                (identifier,),
+            ).fetchone()
+            if row is None or row["locked_until"] is None:
+                return 0
+            return max(0, int(row["locked_until"]) - current)
+        finally:
+            if owns_connection:
+                connection.close()
+
+    def record_login_failure(
+        self,
+        identifier: str,
+        *,
+        now: int | None = None,
+        failure_limit: int = 5,
+        window_seconds: int = 900,
+        lockout_seconds: int = 900,
+    ) -> int:
+        """Record a failed login atomically and return remaining lockout seconds."""
+        if failure_limit < 1 or window_seconds < 1 or lockout_seconds < 1:
+            raise ValueError("Login attempt policy values must be positive")
+        current = int(time.time()) if now is None else int(now)
+        connection = self._connect()
+        owns_connection = self.path != ":memory:"
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT failure_count, window_started_at, locked_until "
+                "FROM login_attempts WHERE identifier = ?",
+                (identifier,),
+            ).fetchone()
+            if row is not None and row["locked_until"] is not None:
+                remaining = int(row["locked_until"]) - current
+                if remaining > 0:
+                    connection.commit()
+                    return remaining
+
+            if (
+                row is None
+                or current < int(row["window_started_at"])
+                or current - int(row["window_started_at"]) >= window_seconds
+                or row["locked_until"] is not None
+            ):
+                failures = 0
+                window_started_at = current
+            else:
+                failures = int(row["failure_count"])
+                window_started_at = int(row["window_started_at"])
+
+            failures += 1
+            locked_until = current + lockout_seconds if failures >= failure_limit else None
+            connection.execute(
+                """
+                INSERT INTO login_attempts
+                    (identifier, failure_count, window_started_at, locked_until)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(identifier) DO UPDATE SET
+                    failure_count = excluded.failure_count,
+                    window_started_at = excluded.window_started_at,
+                    locked_until = excluded.locked_until
+                """,
+                (identifier, failures, window_started_at, locked_until),
+            )
+            connection.commit()
+            return lockout_seconds if locked_until is not None else 0
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            if owns_connection:
+                connection.close()
+
+    def clear_login_failures(self, identifier: str) -> None:
+        """Clear a client's failed-login state after successful authentication."""
+        connection = self._connect()
+        owns_connection = self.path != ":memory:"
+        try:
+            connection.execute(
+                "DELETE FROM login_attempts WHERE identifier = ?", (identifier,)
+            )
+            connection.commit()
         finally:
             if owns_connection:
                 connection.close()
