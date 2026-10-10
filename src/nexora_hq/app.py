@@ -1,17 +1,27 @@
 """FastAPI application for the Nexora HQ dashboard and read-only registry API."""
 from __future__ import annotations
 
-import os
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Literal
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
+from .config import Settings
 from .database import HQDatabase
+
+logger = logging.getLogger("nexora_hq")
+
+
+class HealthResponse(BaseModel):
+    status: Literal["ok", "degraded"]
+    service: str
+    database: Literal["ready", "unavailable"]
+    venture_integrations: Literal["not_configured"]
 
 
 class Venture(BaseModel):
@@ -47,7 +57,8 @@ class ActivityList(BaseModel):
 
 
 def create_app(database_path: str | Path | None = None) -> FastAPI:
-    path = database_path or os.environ.get("NEXORA_DB_PATH", "data/nexora-hq.sqlite3")
+    settings = Settings.from_env()
+    path = database_path or settings.database_path
     database = HQDatabase(path)
 
     @asynccontextmanager
@@ -66,12 +77,29 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
 
     @application.exception_handler(Exception)
     async def unexpected_error(_: Request, exc: Exception) -> JSONResponse:
-        # Do not expose exception details or local paths to clients.
+        # Log only the exception class; do not expose messages, paths, or request secrets.
+        logger.error("Unhandled HQ API error type=%s", type(exc).__name__)
         return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
-    @application.get("/api/health", tags=["system"])
-    def health() -> dict[str, str]:
-        return {"status": "ok", "service": "nexora-hq", "venture_integrations": "not_configured"}
+    @application.get("/api/health", response_model=HealthResponse, tags=["system"])
+    def health(request: Request) -> HealthResponse | JSONResponse:
+        database_ready = request.app.state.database.ping()
+        if not database_ready:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "degraded",
+                    "service": "nexora-hq",
+                    "database": "unavailable",
+                    "venture_integrations": "not_configured",
+                },
+            )
+        return HealthResponse(
+            status="ok",
+            service="nexora-hq",
+            database="ready",
+            venture_integrations="not_configured",
+        )
 
     @application.get("/api/ventures", response_model=VentureList, tags=["ventures"])
     def ventures(request: Request) -> VentureList:
