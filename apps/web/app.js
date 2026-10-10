@@ -98,6 +98,25 @@
 
   async function syncHQApi() {
     try {
+      const authResponse = await fetch("/api/auth/status", { headers: { Accept: "application/json" }, cache: "no-store" });
+      if (!authResponse.ok) {
+        document.documentElement.classList.remove("auth-checking");
+        return;
+      }
+      const auth = await authResponse.json();
+      const overlay = $("#auth-overlay");
+      const signOut = $("#sign-out");
+      if (auth.auth_required && !auth.authenticated) {
+        overlay.classList.remove("hidden");
+        signOut.classList.add("hidden");
+        document.documentElement.classList.remove("auth-checking");
+        $("#login-password").focus();
+        return;
+      }
+      overlay.classList.add("hidden");
+      signOut.classList.toggle("hidden", !auth.auth_required);
+      document.documentElement.classList.remove("auth-checking");
+
       const healthResponse = await fetch("/api/health", { headers: { Accept: "application/json" }, cache: "no-store" });
       if (!healthResponse.ok) return;
       const health = await healthResponse.json();
@@ -138,9 +157,43 @@
       }
     } catch {
       // Static hosting has no HQ API; keep the explicit static-foundation state.
+    } finally {
+      document.documentElement.classList.remove("auth-checking");
     }
   }
 
+  $("#login-form")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const error = $("#login-error");
+    const password = $("#login-password").value;
+    error.textContent = "";
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+      if (!response.ok) {
+        error.textContent = response.status === 401 ? "Invalid password. Try again." : "Sign-in is unavailable. Check the server configuration.";
+        return;
+      }
+      $("#login-password").value = "";
+      await syncHQApi();
+    } catch {
+      error.textContent = "Could not reach the HQ server. Try again.";
+    }
+  });
+
+  $("#sign-out")?.addEventListener("click", async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", headers: { Accept: "application/json" } });
+      await syncHQApi();
+    } catch {
+      notify("Could not sign out. Check the HQ server connection.");
+    }
+  });
+
+  document.documentElement.classList.add("auth-checking");
   const hashPage = location.hash.slice(1);
   if (pages.includes(hashPage)) showPage(hashPage);
   else showPage("overview");
