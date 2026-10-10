@@ -42,7 +42,9 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [ ] Add stale-data and last-success indicators after venture adapters exist.
 - [x] Add runtime configuration validation and safe defaults.
 - [x] Document database backup and restore procedures.
-- [ ] Add automated restore tests, monitoring, alerting and incident procedures.
+- [x] Add integrity-checked SQLite backup/restore helpers, explicit overwrite protection, rollback copies, and regression tests.
+- [x] Add an operations and incident-response runbook.
+- [ ] Add monitoring and alerting.
 
 ## M4 — Production readiness
 - [x] Require production password hashes and session secrets through environment configuration; keep them out of browser assets.
