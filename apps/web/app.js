@@ -205,7 +205,7 @@
       return;
     }
     if (event.key !== "Tab") return;
-    const focusable = $("input:not([disabled]), button:not([disabled]), a[href]", overlay);
+    const focusable = $$("input:not([disabled]), button:not([disabled]), a[href]", overlay);
     if (!focusable.length) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
