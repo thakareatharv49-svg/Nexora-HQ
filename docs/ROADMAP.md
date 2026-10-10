@@ -34,7 +34,8 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 
 ## M3 — Operational control center
 - [x] Add production admin authentication, signed eight-hour sessions, and authorization on registry/activity APIs.
-- [ ] Add login-attempt rate limiting and admin audit logging before public internet exposure.
+- [x] Persist administrator sign-in and sign-out events in the HQ activity log.
+- [ ] Add login-attempt rate limiting and a richer admin identity model before public internet exposure.
 - [x] Add system health, database readiness and safe error responses.
 - [ ] Add stale-data and last-success indicators after venture adapters exist.
 - [x] Add runtime configuration validation and safe defaults.
