@@ -17,12 +17,13 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [ ] Run browser-based accessibility and interaction checks.
 
 ## M2 — Backend and persistence
-- [ ] Select and document the production backend/runtime.
-- [ ] Implement health, venture registry and HQ activity endpoints.
-- [ ] Persist registry records and audit events.
-- [ ] Validate input, configuration and response schemas.
-- [ ] Add API tests and database migration strategy.
-- [ ] Integrate the interface with the API without fabricating fallback live data.
+- [x] Select and document the initial backend/runtime (FastAPI + SQLite).
+- [x] Implement health, venture registry and HQ activity endpoints.
+- [x] Persist registry records and HQ activity records.
+- [x] Validate activity query limits and response schemas.
+- [x] Add API regression tests for health, persistence, validation and dashboard serving.
+- [x] Connect the dashboard to same-origin HQ API endpoints while retaining static-hosting fallback.
+- [ ] Verify backend tests pass in GitHub Actions and review production database/migration requirements.
 
 ## M3 — Operational control center
 - [ ] Add authentication, authorization, session handling and audit logging.
