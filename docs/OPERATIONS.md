@@ -44,10 +44,15 @@ Verify health and expected records before considering recovery complete. Do not 
 5. Switch to the verified copy during a controlled maintenance window; recheck health and authenticated API behavior.
 6. Document the cause and follow-up actions.
 
-Monitoring/alerting, retention policy, login rate limiting, and target-host deployment verification remain tracked work. Do not describe them as active until verified.
+## GitHub Pages
 
-## Boundaries
+The Pages workflow validates the static frontend on every relevant change. Publishing is conditional on Pages already being enabled for the repository. If it is not enabled, the workflow reports a warning and skips only the deployment steps; it does not attempt to change repository settings with a token that may not have administration permission.
+
+To enable the optional static preview, open repository **Settings → Pages** and choose **GitHub Actions** as the build and deployment source. The static preview does not include FastAPI or SQLite. Use the container deployment documented in [DEPLOYMENT.md](DEPLOYMENT.md) for the complete application.
+
+## Operational boundaries
 
 - Keep credentials out of logs and browser code.
 - Never store generated venture applications in the HQ database.
 - Never describe disconnected venture state as live monitoring.
+- Monitoring/alerting, retention policy, login rate limiting, and target-host deployment verification remain tracked work.
