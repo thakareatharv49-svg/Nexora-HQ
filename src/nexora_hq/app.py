@@ -40,6 +40,13 @@ class VentureCreate(BaseModel):
     repository_url: AnyHttpUrl | None = None
 
 
+class VentureUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=80)
+    category: str | None = Field(default=None, min_length=2, max_length=60)
+    description: str | None = Field(default=None, min_length=10, max_length=500)
+    repository_url: AnyHttpUrl | None = None
+
+
 class HealthResponse(BaseModel):
     status: Literal["ok", "degraded"]
     service: str
@@ -274,6 +281,41 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
             "REGISTRY",
             f"Venture registered: {item['name']}",
             "A venture record was added to the HQ registry.",
+            "hq",
+        )
+        return Venture.model_validate(item)
+
+    @application.patch(
+        "/api/ventures/{venture_id}",
+        response_model=Venture,
+        tags=["ventures"],
+        dependencies=[Depends(require_auth)],
+    )
+    def update_venture(
+        venture_id: str, payload: VentureUpdate, request: Request
+    ) -> Venture:
+        updates = payload.model_dump(exclude_unset=True)
+        updates = {
+            key: value
+            for key, value in updates.items()
+            if key == "repository_url" or value is not None
+        }
+        if "repository_url" in updates and updates["repository_url"] is not None:
+            updates["repository_url"] = str(updates["repository_url"])
+        if not updates:
+            raise HTTPException(
+                status_code=422, detail="At least one editable field is required"
+            )
+        try:
+            item = request.app.state.database.update_venture(venture_id, updates)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail="Venture not found") from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        request.app.state.database.record_activity(
+            "REGISTRY",
+            f"Venture updated: {item['name']}",
+            "HQ registry metadata was updated.",
             "hq",
         )
         return Venture.model_validate(item)
