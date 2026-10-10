@@ -193,6 +193,27 @@
     }
   });
 
+  document.addEventListener("keydown", event => {
+    const overlay = $("#auth-overlay");
+    if (overlay.classList.contains("hidden")) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = $("input:not([disabled]), button:not([disabled]), a[href]", overlay);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
   document.documentElement.classList.add("auth-checking");
   const hashPage = location.hash.slice(1);
   if (pages.includes(hashPage)) showPage(hashPage);
