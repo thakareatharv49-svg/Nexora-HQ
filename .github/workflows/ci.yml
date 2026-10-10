@@ -36,5 +36,23 @@ jobs:
         run: python -m pytest -q
       - name: Build production container
         run: docker build --tag nexora-hq:ci .
+      - name: Smoke-test production container
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker volume create nexora-hq-ci-data >/dev/null
+          trap 'docker rm -f nexora-hq-ci >/dev/null 2>&1 || true; docker volume rm nexora-hq-ci-data >/dev/null 2>&1 || true' EXIT
+          docker run -d --name nexora-hq-ci --publish 127.0.0.1:18743:8000 --volume nexora-hq-ci-data:/data nexora-hq:ci
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail --max-time 3 http://127.0.0.1:18743/api/health >/tmp/nexora-health.json; then
+              break
+            fi
+            sleep 2
+          done
+          python -c 'import json; d=json.load(open("/tmp/nexora-health.json")); assert d["status"] == "ok" and d["database"] == "ready"'
+          test "$(docker exec nexora-hq-ci id -u)" = "10001"
+          curl --silent --show-error --fail --max-time 3 http://127.0.0.1:18743/api/ventures | python -c 'import json,sys; d=json.load(sys.stdin); assert d["count"] == 2; assert all(v["connection_state"] == "not_connected" for v in d["items"])'
+          curl --silent --show-error --fail --max-time 3 'http://127.0.0.1:18743/api/activity?limit=2' | python -c 'import json,sys; d=json.load(sys.stdin); assert d["count"] == 2 and len(d["items"]) == 2'
+          curl --silent --show-error --fail --max-time 3 http://127.0.0.1:18743/ | grep -q 'Nexora HQ'
       - name: Check patch whitespace
         run: git diff --check
