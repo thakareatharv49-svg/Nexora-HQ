@@ -132,7 +132,7 @@
       ]);
       if (ventureResponse.ok) {
         const registry = await ventureResponse.json();
-        const values = $(".stat-card .stat-value");
+        const values = $$(".stat-card .stat-value");
         if (values[0] && Number.isInteger(registry.count)) values[0].textContent = String(registry.count).padStart(2, "0");
         if (values[1] && Array.isArray(registry.items)) {
           const connected = registry.items.filter(item => item.connection_state === "connected").length;
@@ -152,7 +152,7 @@
           }));
           $("#activity-list")?.replaceChildren(...records.slice(0, 3).map(makeActivity));
           $("#all-activity-list")?.replaceChildren(...records.map(makeActivity));
-          $(".panel-footnote").forEach(note => { note.textContent = "Persisted HQ records; no external venture activity is connected."; });
+          $$(".panel-footnote").forEach(note => { note.textContent = "Persisted HQ records; no external venture activity is connected."; });
         }
       }
     } catch {
