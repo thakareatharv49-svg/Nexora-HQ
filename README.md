@@ -31,6 +31,10 @@ SQLite stores HQ registry and activity records in `data/nexora-hq.sqlite3` by de
 
 For the static frontend alone, run `python -m http.server 4173 --directory apps/web` and open [http://localhost:4173](http://localhost:4173). Static hosting does not include the API; the UI stays in its explicit static-foundation state.
 
+## Container deployment
+
+See [the deployment guide](docs/DEPLOYMENT.md). With Docker installed, run `docker compose up --build -d`, then open [http://localhost:8000](http://localhost:8000). The container uses a persistent named volume for SQLite and runs with a non-root user and a read-only root filesystem. GitHub Pages publishes only the static frontend; it does not host this API.
+
 ## Validate
 
 Requires Node.js 22 or compatible modern Node.js and Python 3.12+:
