@@ -76,8 +76,8 @@
       </section>
 
       <section class="view-section hidden" id="ventures-view" data-page="ventures">
-        <div class="page-heading compact-heading"><div><p class="eyebrow">PORTFOLIO</p><h1>Venture registry</h1><p class="heading-subtitle">The ventures that make up Nexora, each with its own ownership and execution boundary.</p></div><span class="subtle-label">2 REGISTERED</span></div>
-        <div class="toolbar"><label class="search-box"><span>⌕</span><input id="venture-search" type="search" placeholder="Search ventures…" autocomplete="off" aria-label="Search ventures"></label><span class="toolbar-note" id="search-count">Showing 2 ventures</span></div>
+        <div class="page-heading compact-heading"><div><p class="eyebrow">PORTFOLIO</p><h1>Venture registry</h1><p class="heading-subtitle">The ventures that make up Nexora, each with its own ownership and execution boundary.</p></div><span class="subtle-label" id="registry-total">2 REGISTERED</span></div>
+        <div class="toolbar"><label class="search-box"><span>⌕</span><input id="venture-search" type="search" placeholder="Search ventures…" autocomplete="off" aria-label="Search ventures"></label><span class="toolbar-note" id="search-count">Showing 2 ventures</span><button class="primary-button hidden" id="add-venture" type="button">＋ Add venture</button></div>
         <div class="venture-grid registry-grid" id="registry-grid"></div>
         <div class="empty-state hidden" id="empty-search"><span>⌕</span><h3>No ventures found</h3><p>Try a different search term.</p></div>
         <div class="panel boundary-panel"><div class="panel-heading"><div><h2>Ownership boundary</h2><p>HQ provides visibility, not execution</p></div></div><div class="boundary-grid"><div><span class="boundary-icon">◉</span><strong>HQ owns</strong><p>Venture registry, company-level visibility, connection health, and cross-venture activity summaries.</p></div><div><span class="boundary-icon">◇</span><strong>Each venture owns</strong><p>Its workloads, repositories, generated products, project execution, credentials, and internal operational decisions.</p></div></div></div>
@@ -114,6 +114,21 @@
       <p class="auth-footnote">Sessions expire automatically after eight hours.</p>
     </section>
   </div>
+  <dialog class="venture-dialog" id="venture-dialog" aria-labelledby="venture-dialog-title">
+    <form id="venture-form">
+      <div class="dialog-heading"><div><p class="eyebrow">HQ REGISTRY</p><h2 id="venture-dialog-title">Add a venture</h2><p>Register a venture record. This does not connect to or modify the venture itself.</p></div><button class="icon-button" id="close-venture-dialog" type="button" aria-label="Close add venture form">×</button></div>
+      <label for="venture-name">Venture name</label>
+      <input id="venture-name" name="name" type="text" minlength="2" maxlength="80" required autocomplete="off">
+      <label for="venture-category">Category</label>
+      <input id="venture-category" name="category" type="text" minlength="2" maxlength="60" required placeholder="e.g. Software engineering">
+      <label for="venture-description">Description</label>
+      <textarea id="venture-description" name="description" minlength="10" maxlength="500" rows="3" required></textarea>
+      <label for="venture-repository">Repository URL <span class="optional-label">OPTIONAL</span></label>
+      <input id="venture-repository" name="repository_url" type="url" maxlength="500" placeholder="https://github.com/owner/repository">
+      <p class="form-error" id="venture-form-error" role="alert"></p>
+      <div class="dialog-actions"><button class="text-button" id="cancel-venture" type="button">Cancel</button><button class="primary-button" id="save-venture" type="submit">Add to registry</button></div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
