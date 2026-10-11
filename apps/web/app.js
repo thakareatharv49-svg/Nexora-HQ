@@ -143,6 +143,67 @@
     return card;
   }
 
+
+  function renderDeveloperIntegration(item) {
+    const state = $("#developer-integration-state");
+    const message = $("#developer-integration-message");
+    const metrics = $("#developer-integration-metrics");
+    const freshness = $("#developer-integration-freshness");
+    if (!state || !message || !metrics || !freshness || !item) return;
+
+    const stateLabels = {
+      not_configured: "Not configured",
+      connected: "Connected",
+      stale: "Stale data",
+      error: "Connection error"
+    };
+    state.replaceChildren(document.createElement("i"), document.createTextNode(" " + (stateLabels[item.integration_state] || "Unknown")));
+    state.classList.toggle("integration-connected", item.integration_state === "connected");
+    state.classList.toggle("integration-warning", item.integration_state === "stale" || item.integration_state === "error");
+    message.textContent = item.message || "No venture status message is available.";
+
+    const values = [
+      ["Active missions", item.active_missions],
+      ["Queued", item.queued_missions],
+      ["Completed", item.completed_missions],
+      ["Blocked", item.blocked_missions]
+    ];
+    metrics.replaceChildren(...values.map(([label, value]) => {
+      const metric = document.createElement("div");
+      metric.className = "integration-metric";
+      const caption = document.createElement("span");
+      caption.textContent = label;
+      const count = document.createElement("strong");
+      count.textContent = Number.isInteger(value) && value >= 0 ? String(value) : "—";
+      metric.append(caption, count);
+      return metric;
+    }));
+
+    const lastSuccess = item.last_success_at ? new Date(item.last_success_at) : null;
+    freshness.textContent = lastSuccess && !Number.isNaN(lastSuccess.getTime())
+      ? "Last successful check: " + lastSuccess.toLocaleString()
+      : "Last successful check: not yet";
+
+    const noticeTitle = $("#integration-notice-title");
+    const noticeDescription = $("#integration-notice-description");
+    const noticeTag = $("#integration-notice-tag");
+    if (noticeTitle && noticeDescription && noticeTag) {
+      if (item.integration_state === "connected") {
+        noticeTitle.textContent = "Read-only venture monitoring is connected";
+        noticeDescription.textContent = "Status and mission counts come from the venture's dedicated endpoint; HQ cannot start, stop, or change missions.";
+        noticeTag.textContent = "READ ONLY";
+      } else if (item.integration_state === "stale" || item.integration_state === "error") {
+        noticeTitle.textContent = "Venture monitoring needs attention";
+        noticeDescription.textContent = item.message || "HQ could not verify the latest venture status.";
+        noticeTag.textContent = item.integration_state === "stale" ? "STALE" : "ERROR";
+      } else {
+        noticeTitle.textContent = "External venture monitoring is not configured";
+        noticeDescription.textContent = "HQ shows live status only after a dedicated read-only adapter is configured. It never invents health or mission metrics.";
+        noticeTag.textContent = "NOT CONNECTED";
+      }
+    }
+  }
+
   function renderRegistry(query = "") {
     const grid = $("#registry-grid");
     if (!grid) return;
@@ -323,11 +384,12 @@
       document.documentElement.dataset.hqApi = "connected";
       document.documentElement.classList.add("api-connected");
 
-      const [ventureResponse, activityResponse] = await Promise.all([
+      const [ventureResponse, activityResponse, integrationResponse] = await Promise.all([
         fetch("/api/ventures", { headers: { Accept: "application/json" }, cache: "no-store" }),
-        fetch("/api/activity?limit=50", { headers: { Accept: "application/json" }, cache: "no-store" })
+        fetch("/api/activity?limit=50", { headers: { Accept: "application/json" }, cache: "no-store" }),
+        fetch("/api/integrations/ai-software-developer", { headers: { Accept: "application/json" }, cache: "no-store" })
       ]);
-      if (ventureResponse.status === 401 || activityResponse.status === 401) {
+      if (ventureResponse.status === 401 || activityResponse.status === 401 || integrationResponse.status === 401) {
         await syncHQApi();
         return;
       }
@@ -344,6 +406,9 @@
           $("#venture-grid")?.replaceChildren(...ventureItems.map(item => makeVentureCard(item)));
           renderRegistry($("#venture-search")?.value || "");
         }
+      }
+      if (integrationResponse.ok) {
+        renderDeveloperIntegration(await integrationResponse.json());
       }
       if (activityResponse.ok) {
         const payload = await activityResponse.json();
