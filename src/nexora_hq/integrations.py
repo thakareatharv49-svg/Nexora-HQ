@@ -8,7 +8,6 @@ from urllib.parse import urlsplit
 import httpx
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-
 VentureStatus = Literal["operational", "degraded", "down", "unknown"]
 IntegrationState = Literal["not_configured", "connected", "stale", "error"]
 
