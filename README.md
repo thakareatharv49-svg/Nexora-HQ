@@ -65,7 +65,7 @@ GitHub Actions validates frontend behavior, runs Chromium browser acceptance tes
 
 ## Security principles
 
-Never put tokens or credentials in browser code. Future venture adapters must run server-side, use least-privilege read-only access, apply timeouts, report source timestamps and freshness, and isolate upstream failures. HQ must not execute, mutate or take ownership of venture workloads. Configuration and authentication remain read-only/unimplemented until their own milestone is delivered.
+Never put tokens or credentials in browser code. Future venture adapters must run server-side, use least-privilege read-only access, apply timeouts, report source timestamps and freshness, and isolate upstream failures. HQ must not execute, mutate or take ownership of venture workloads. Dashboard settings remain read-only; integration URLs and service tokens are configured only through server-side environment variables.
 
 ## Delivery status
 
