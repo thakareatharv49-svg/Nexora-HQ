@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
+from urllib.parse import urlsplit
 
 
 @dataclass(frozen=True)
@@ -12,6 +13,8 @@ class Settings:
     database_path: str
     admin_password_hash: str | None
     session_secret: str | None
+    ai_software_developer_url: str | None
+    ai_software_developer_token: str | None
 
     @classmethod
     def from_env(cls, environ: Mapping[str, str] | None = None) -> Settings:
@@ -36,9 +39,32 @@ class Settings:
             raise ValueError("NEXORA_ADMIN_PASSWORD_HASH must be a scrypt password hash")
         if session_secret and len(session_secret) < 32:
             raise ValueError("NEXORA_SESSION_SECRET must contain at least 32 characters")
+
+        developer_url = values.get("NEXORA_AI_SOFTWARE_DEVELOPER_URL", "").strip().rstrip("/") or None
+        developer_token = values.get("NEXORA_AI_SOFTWARE_DEVELOPER_TOKEN", "").strip() or None
+        if bool(developer_url) != bool(developer_token):
+            raise ValueError(
+                "NEXORA_AI_SOFTWARE_DEVELOPER_URL and NEXORA_AI_SOFTWARE_DEVELOPER_TOKEN must be configured together"
+            )
+        if developer_url:
+            parsed = urlsplit(developer_url)
+            if (
+                parsed.scheme not in {"http", "https"}
+                or not parsed.netloc
+                or parsed.username
+                or parsed.password
+                or parsed.query
+                or parsed.fragment
+            ):
+                raise ValueError("NEXORA_AI_SOFTWARE_DEVELOPER_URL must be a base HTTP(S) URL without credentials or query")
+            if environment == "production" and parsed.scheme != "https":
+                raise ValueError("Production venture integrations must use HTTPS")
+
         return cls(
             environment=environment,
             database_path=database_path,
             admin_password_hash=admin_password_hash,
             session_secret=session_secret,
+            ai_software_developer_url=developer_url,
+            ai_software_developer_token=developer_token,
         )
