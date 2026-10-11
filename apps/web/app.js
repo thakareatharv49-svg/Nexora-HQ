@@ -232,9 +232,13 @@
     const settingsDataSource = $("#settings-data-source-value");
     const settingsDataSourceDescription = $("#settings-data-source-description");
     if (settingsDataSource) settingsDataSource.textContent =
-      item.integration_state === "connected" ? "SQLite + venture adapter" : "SQLite";
+      item.integration_state !== "not_configured" ? "SQLite + venture adapter" : "SQLite";
     if (settingsDataSourceDescription) settingsDataSourceDescription.textContent =
-      item.integration_state === "connected" ? "HQ records plus read-only venture status" : "External adapter is not currently connected";
+      item.integration_state === "connected"
+        ? "HQ records plus read-only venture status"
+        : item.integration_state === "not_configured"
+          ? "External adapter is not configured"
+          : "Adapter configured; latest status is unavailable or stale";
 
     const values = [
       ["Active missions", item.active_missions],
@@ -272,8 +276,8 @@
         noticeTitle.textContent = "Read-only venture monitoring is connected";
         noticeDescription.textContent = "Status and mission counts come from the venture's dedicated endpoint; HQ cannot start, stop, or change missions.";
         noticeTag.textContent = "READ ONLY";
-      } else if (item.integration_state === "connected" && (item.status === "down" || item.status === "degraded")) {
-        noticeTitle.textContent = "AI Software Developer needs attention";
+      } else if (item.integration_state === "connected") {
+        noticeTitle.textContent = item.status === "unknown" ? "Venture health is unknown" : "AI Software Developer needs attention";
         noticeDescription.textContent = "The venture explicitly reported " + item.status + ". HQ is showing its status without attempting to change the venture.";
         noticeTag.textContent = item.status.toUpperCase();
       } else if (item.integration_state === "stale" || item.integration_state === "error") {
