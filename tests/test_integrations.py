@@ -1,8 +1,7 @@
+import asyncio
 from datetime import UTC, datetime, timedelta
 
 import httpx
-import pytest
-
 from src.nexora_hq.integrations import ReadOnlyDeveloperAdapter
 
 
@@ -31,9 +30,8 @@ def valid_payload(**overrides):
     return payload
 
 
-@pytest.mark.asyncio
-async def test_unconfigured_adapter_is_explicit_and_does_not_make_a_request():
-    result = await ReadOnlyDeveloperAdapter(None, None).read_status()
+def test_unconfigured_adapter_is_explicit_and_does_not_make_a_request():
+    result = asyncio.run(ReadOnlyDeveloperAdapter(None, None).read_status())
 
     assert result.integration_state == "not_configured"
     assert result.status == "unknown"
@@ -42,15 +40,14 @@ async def test_unconfigured_adapter_is_explicit_and_does_not_make_a_request():
     assert result.source is None
 
 
-@pytest.mark.asyncio
-async def test_adapter_normalizes_explicit_status_and_sends_service_token():
+def test_adapter_normalizes_explicit_status_and_sends_service_token():
     def handler(request):
         assert request.method == "GET"
         assert request.url.path == "/api/hq/status"
         assert request.headers["authorization"] == "Bearer test-service-token"
         return httpx.Response(200, json=valid_payload())
 
-    result = await make_adapter(handler).read_status()
+    result = asyncio.run(make_adapter(handler).read_status())
 
     assert result.integration_state == "connected"
     assert result.status == "operational"
@@ -63,32 +60,29 @@ async def test_adapter_normalizes_explicit_status_and_sends_service_token():
     assert "test-service-token" not in result.model_dump_json()
 
 
-@pytest.mark.asyncio
-async def test_http_success_without_valid_explicit_status_is_not_treated_as_healthy():
+def test_http_success_without_valid_explicit_status_is_not_treated_as_healthy():
     def handler(_request):
         return httpx.Response(200, json={"service": "ai-software-developer"})
 
-    result = await make_adapter(handler).read_status()
+    result = asyncio.run(make_adapter(handler).read_status())
 
     assert result.integration_state == "error"
     assert result.status == "unknown"
     assert result.active_missions is None
 
 
-@pytest.mark.asyncio
-async def test_non_200_response_is_an_error_without_leaking_upstream_body():
+def test_non_200_response_is_an_error_without_leaking_upstream_body():
     def handler(_request):
         return httpx.Response(503, text="private upstream diagnostic")
 
-    result = await make_adapter(handler).read_status()
+    result = asyncio.run(make_adapter(handler).read_status())
 
     assert result.integration_state == "error"
     assert result.status == "unknown"
     assert "private upstream diagnostic" not in result.model_dump_json()
 
 
-@pytest.mark.asyncio
-async def test_failed_check_after_old_success_reports_stale_data():
+def test_failed_check_after_old_success_reports_stale_data():
     def handler(_request):
         return httpx.Response(200, json=valid_payload())
 
@@ -104,7 +98,7 @@ async def test_failed_check_after_old_success_reports_stale_data():
         )
 
     adapter.client_factory = failing_factory
-    result = await adapter.read_status()
+    result = asyncio.run(adapter.read_status())
 
     assert result.integration_state == "stale"
     assert result.last_success_at is not None
