@@ -26,3 +26,37 @@ def test_production_cannot_use_in_memory_database():
 def test_production_requires_admin_password_hash_and_session_secret():
     with pytest.raises(ValueError, match="Production requires admin password hash"):
         Settings.from_env({"NEXORA_ENV": "production"})
+
+
+
+def test_venture_adapter_requires_url_and_service_token_together():
+    with pytest.raises(ValueError, match="must be configured together"):
+        Settings.from_env({"NEXORA_AI_SOFTWARE_DEVELOPER_URL": "http://127.0.0.1:8011"})
+
+
+def test_venture_adapter_rejects_credentials_in_url():
+    with pytest.raises(ValueError, match="base HTTP"):
+        Settings.from_env({
+            "NEXORA_AI_SOFTWARE_DEVELOPER_URL": "https://user:pass@example.test",
+            "NEXORA_AI_SOFTWARE_DEVELOPER_TOKEN": "service-token",
+        })
+
+
+def test_production_venture_adapter_requires_https():
+    with pytest.raises(ValueError, match="must use HTTPS"):
+        Settings.from_env({
+            "NEXORA_ENV": "production",
+            "NEXORA_ADMIN_PASSWORD_HASH": "scrypt$placeholder",
+            "NEXORA_SESSION_SECRET": "s" * 40,
+            "NEXORA_AI_SOFTWARE_DEVELOPER_URL": "http://developer.internal",
+            "NEXORA_AI_SOFTWARE_DEVELOPER_TOKEN": "service-token",
+        })
+
+
+def test_valid_venture_adapter_configuration_is_normalized():
+    settings = Settings.from_env({
+        "NEXORA_AI_SOFTWARE_DEVELOPER_URL": "http://127.0.0.1:8011/",
+        "NEXORA_AI_SOFTWARE_DEVELOPER_TOKEN": "service-token",
+    })
+    assert settings.ai_software_developer_url == "http://127.0.0.1:8011"
+    assert settings.ai_software_developer_token == "service-token"
