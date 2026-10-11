@@ -7,7 +7,7 @@
   <meta name="description" content="Nexora HQ — the parent-company control center for venture-level visibility.">
   <title>Nexora HQ · Overview</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="app.js" defer></script>
+  <script src="app.js?v=20" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -44,7 +44,7 @@
         </div>
 
         <section class="panel integration-panel" aria-labelledby="developer-integration-heading">
-          <div class="panel-heading"><div><h2 id="developer-integration-heading">AI Software Developer</h2><p>Read-only factory status · no mission controls</p></div><span class="state-pill" id="developer-integration-state"><i></i> Not configured</span></div>
+          <div class="panel-heading"><div><h2 id="developer-integration-heading">AI Software Developer</h2><p>Read-only factory status · no mission controls</p></div><div class="panel-actions"><span class="state-pill" id="developer-integration-state"><i></i> Not configured</span><button class="refresh-status-button" id="refresh-developer-status" type="button">Refresh status</button></div></div>
           <p id="developer-integration-message" role="status" aria-live="polite">A dedicated read-only status endpoint has not been configured. HQ will not guess venture health.</p>
           <div class="integration-metrics" id="developer-integration-metrics">
             <div class="integration-metric"><span>Active missions</span><strong>—</strong></div>
