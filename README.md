@@ -27,6 +27,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000). The FastAPI application ser
 - Registry and activity endpoints require a valid administrator session in production.
 - `GET /api/ventures` — persisted venture registry.
 - `POST /api/ventures` — register a venture in the HQ-owned registry; this does not connect to or modify the venture itself.
+- `PATCH /api/ventures/{venture_id}` — update HQ-owned venture metadata and record the change in HQ activity.
 - `GET /api/activity?limit=50` — HQ-owned activity records; limit must be between 1 and 100.
 - `GET /docs` — interactive API documentation in development/test mode; disabled in production.
 

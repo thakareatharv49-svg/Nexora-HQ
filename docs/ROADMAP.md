@@ -14,7 +14,7 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [x] Add Overview, Venture Registry, Activity and Settings views.
 - [x] Add client-side venture search and responsive navigation.
 - [x] Distinguish illustrative setup records from live external activity.
-- [x] Add API-backed venture registration with validation, duplicate protection, and explicit disconnected state.
+- [x] Add API-backed venture registration and metadata editing with validation, duplicate protection, and explicit disconnected state.
 - [x] Add accessible status messages, reduced-motion support and mobile layouts.
 - [x] Add automated checks for accessible names, live status announcements and external-only scripts.
 - [x] Verify browser sign-in, invalid-password handling, navigation, search and sign-out in [CI run #40](https://github.com/thakareatharv49-svg/Nexora-HQ/actions/runs/38095067863).

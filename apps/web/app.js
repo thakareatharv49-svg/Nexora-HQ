@@ -5,6 +5,7 @@
   const pages = ["overview", "ventures", "activity", "settings"];
   let apiConnected = false;
   let ventureItems = [];
+  let editingVentureId = null;
   const activityItems = [
     { symbol: "✦", tone: "violet", title: "HQ foundation created", detail: "Dashboard shell and venture boundaries established.", meta: "Foundation record · illustrative", kind: "SYSTEM" },
     { symbol: "◇", tone: "blue", title: "Venture registry initialized", detail: "Two independent ventures listed for future monitoring.", meta: "Foundation record · illustrative", kind: "REGISTRY" },
@@ -52,7 +53,7 @@
     return row;
   }
 
-  function makeVentureCard(item) {
+  function makeVentureCard(item, allowEdit = false) {
     const card = document.createElement("article");
     card.className = "venture-card";
     card.dataset.venture = item.id;
@@ -129,6 +130,15 @@
       noRepository.textContent = "Repository not linked";
       footer.append(footerState, noRepository);
     }
+    if (allowEdit) {
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "edit-venture-button";
+      editButton.dataset.editVenture = item.id;
+      editButton.setAttribute("aria-label", "Edit " + item.name);
+      editButton.textContent = "Edit";
+      footer.append(editButton);
+    }
     card.append(top, category, title, description, metadata, footer);
     return card;
   }
@@ -141,7 +151,7 @@
       const cards = ventureItems.filter(item =>
         [item.name, item.category, item.description].join(" ").toLowerCase().includes(normalized)
       );
-      grid.replaceChildren(...cards.map(makeVentureCard));
+      grid.replaceChildren(...cards.map(item => makeVentureCard(item, true)));
       $("#search-count").textContent = "Showing " + cards.length + (cards.length === 1 ? " venture" : " ventures");
       $("#registry-total").textContent = ventureItems.length + " REGISTERED";
       const noResults = cards.length === 0;
@@ -189,26 +199,44 @@
     if (card && !event.target.closest("a")) notify("Venture details will be available after the registry API is implemented.");
   });
   $("#registry-grid")?.addEventListener("click", event => {
+    const editButton = event.target.closest("[data-edit-venture]");
+    if (editButton) {
+      const item = ventureItems.find(venture => venture.id === editButton.dataset.editVenture);
+      if (item) openVentureDialog(item);
+      return;
+    }
     const card = event.target.closest(".venture-card");
     if (card && !event.target.closest("a")) notify("Venture details will be available after the registry API is implemented.");
   });
 
-  $("#add-venture")?.addEventListener("click", () => {
+  function openVentureDialog(item = null) {
     const dialog = $("#venture-dialog");
     if (!apiConnected || !dialog) {
-      notify("Venture registration requires the HQ API.");
+      notify("Venture registry editing requires the HQ API.");
       return;
     }
+    editingVentureId = item ? item.id : null;
+    $("#venture-dialog-title").textContent = item ? "Edit venture" : "Add a venture";
+    $("#save-venture").textContent = item ? "Save changes" : "Add to registry";
+    $("#venture-name").value = item ? item.name : "";
+    $("#venture-category").value = item ? item.category : "";
+    $("#venture-description").value = item ? item.description : "";
+    $("#venture-repository").value = item && item.repository_url ? item.repository_url : "";
     $("#venture-form-error").textContent = "";
     dialog.showModal();
     $("#venture-name").focus();
-  });
+  }
+
+  $("#add-venture")?.addEventListener("click", () => openVentureDialog());
 
   function closeVentureDialog() {
     const dialog = $("#venture-dialog");
     if (dialog?.open) dialog.close();
     $("#venture-form")?.reset();
     $("#venture-form-error").textContent = "";
+    editingVentureId = null;
+    $("#venture-dialog-title").textContent = "Add a venture";
+    $("#save-venture").textContent = "Add to registry";
   }
 
   $("#close-venture-dialog")?.addEventListener("click", closeVentureDialog);
@@ -226,8 +254,12 @@
     };
     saveButton.disabled = true;
     try {
-      const response = await fetch("/api/ventures", {
-        method: "POST",
+      const isEditing = Boolean(editingVentureId);
+      const endpoint = isEditing
+        ? "/api/ventures/" + encodeURIComponent(editingVentureId)
+        : "/api/ventures";
+      const response = await fetch(endpoint, {
+        method: isEditing ? "PATCH" : "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
@@ -250,7 +282,7 @@
       await syncHQApi();
       closeVentureDialog();
       showPage("ventures");
-      notify("Venture added to the HQ registry.");
+      notify(isEditing ? "Venture details updated." : "Venture added to the HQ registry.");
     } catch {
       error.textContent = "Could not reach the HQ server. Try again.";
     } finally {
@@ -309,7 +341,7 @@
           $("#add-venture")?.classList.remove("hidden");
           const connected = ventureItems.filter(item => item.connection_state === "connected").length;
           if (values[1]) values[1].textContent = String(connected).padStart(2, "0");
-          $("#venture-grid")?.replaceChildren(...ventureItems.map(makeVentureCard));
+          $("#venture-grid")?.replaceChildren(...ventureItems.map(item => makeVentureCard(item)));
           renderRegistry($("#venture-search")?.value || "");
         }
       }

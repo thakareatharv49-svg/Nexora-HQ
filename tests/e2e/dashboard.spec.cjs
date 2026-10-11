@@ -85,6 +85,14 @@ test("administrator can register a venture without connecting its workload", asy
   await expect(page.getByRole("heading", { name: "QA Observability Venture" })).toBeVisible();
   await expect(page.getByText("Not connected").last()).toBeVisible();
 
+  await page.getByRole("button", { name: "Edit QA Observability Venture" }).click();
+  const editDialog = page.getByRole("dialog", { name: "Edit venture" });
+  await expect(editDialog).toBeVisible();
+  await page.getByLabel("Description").fill("Tracks internal quality and operational readiness with reviewed metrics.");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(editDialog).toBeHidden();
+  await expect(page.locator("#registry-grid").getByText("Tracks internal quality and operational readiness with reviewed metrics.")).toBeVisible();
+
   await page.getByRole("button", { name: "Add venture" }).click();
   await page.getByLabel("Venture name").fill("QA Observability Venture");
   await page.getByLabel("Category").fill("Infrastructure");
