@@ -2,6 +2,7 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 
 import httpx
+
 from src.nexora_hq.integrations import ReadOnlyDeveloperAdapter
 
 
@@ -103,3 +104,19 @@ def test_failed_check_after_old_success_reports_stale_data():
     assert result.integration_state == "stale"
     assert result.last_success_at is not None
     assert "stale" in result.message.lower()
+
+
+
+def test_old_source_snapshot_is_marked_stale_even_when_endpoint_responds():
+    old_timestamp = (datetime.now(UTC) - timedelta(minutes=10)).isoformat()
+
+    def handler(_request):
+        return httpx.Response(200, json=valid_payload(updated_at=old_timestamp))
+
+    result = asyncio.run(make_adapter(handler).read_status())
+
+    assert result.integration_state == "stale"
+    assert result.status == "operational"
+    assert result.active_missions == 1
+    assert result.source_updated_at is not None
+    assert "snapshot is stale" in result.message.lower()
