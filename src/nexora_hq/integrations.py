@@ -34,6 +34,7 @@ class VentureIntegration(BaseModel):
     integration_state: IntegrationState
     checked_at: datetime
     last_success_at: datetime | None = None
+    source_updated_at: datetime | None = None
     source: str | None = None
     message: str
     active_missions: int | None = None
@@ -60,6 +61,7 @@ class ReadOnlyDeveloperAdapter:
         self.stale_after_seconds = stale_after_seconds
         self.client_factory = client_factory
         self._last_success_at: datetime | None = None
+        self._last_source_updated_at: datetime | None = None
 
     @staticmethod
     def _now() -> datetime:
@@ -109,6 +111,7 @@ class ReadOnlyDeveloperAdapter:
                 integration_state="stale" if stale else "error",
                 checked_at=now,
                 last_success_at=last_success,
+                source_updated_at=self._last_source_updated_at,
                 source=self._source(),
                 message=(
                     "Venture status is stale; the last successful check is too old."
@@ -118,13 +121,20 @@ class ReadOnlyDeveloperAdapter:
             )
 
         self._last_success_at = now
+        self._last_source_updated_at = payload.updated_at
+        source_is_stale = (now - payload.updated_at).total_seconds() > self.stale_after_seconds
         return VentureIntegration(
             status=payload.status,
-            integration_state="connected",
+            integration_state="stale" if source_is_stale else "connected",
             checked_at=now,
             last_success_at=now,
+            source_updated_at=payload.updated_at,
             source=self._source(),
-            message="Read-only venture status received from the configured endpoint.",
+            message=(
+                "The endpoint responded, but its status snapshot is stale."
+                if source_is_stale
+                else "Read-only venture status received from the configured endpoint."
+            ),
             active_missions=payload.active_missions,
             queued_missions=payload.queued_missions,
             completed_missions=payload.completed_missions,
