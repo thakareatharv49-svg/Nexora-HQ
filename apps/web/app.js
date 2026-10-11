@@ -166,6 +166,76 @@
     state.classList.toggle("integration-warning", !healthy);
     message.textContent = item.message || "No venture status message is available.";
 
+    const registryConnected = ventureItems.filter(venture => venture.connection_state === "connected").length;
+    const developerAlreadyCounted = ventureItems.some(venture =>
+      /ai software developer/i.test(venture.name) && venture.connection_state === "connected"
+    );
+    const connectedCount = Math.min(
+      ventureItems.length,
+      registryConnected + (item.integration_state === "connected" && !developerAlreadyCounted ? 1 : 0)
+    );
+    const connectedCountElement = $("#connected-ventures-count");
+    if (connectedCountElement && apiConnected) connectedCountElement.textContent = String(connectedCount).padStart(2, "0");
+    const connectedFoot = $("#connected-ventures-foot");
+    if (connectedFoot) {
+      connectedFoot.textContent = item.integration_state === "connected"
+        ? "Dedicated status endpoint responding"
+        : item.integration_state === "not_configured"
+          ? "Integrations not configured"
+          : "Adapter status needs attention";
+    }
+
+    const attention = item.integration_state === "not_configured"
+      ? null
+      : (item.integration_state !== "connected" || item.status !== "operational" ? 1 : 0);
+    const attentionValue = $("#ventures-attention-count");
+    const attentionFoot = $("#ventures-attention-foot");
+    if (attentionValue) attentionValue.textContent = attention === null ? "—" : String(attention).padStart(2, "0");
+    if (attentionFoot) {
+      attentionFoot.textContent = attention === null
+        ? "Configure adapter to monitor venture health"
+        : attention === 0
+          ? "No configured venture reporting issues"
+          : "AI Software Developer needs attention";
+    }
+
+    const latestSync = $("#latest-sync-value");
+    const latestSyncFoot = $("#latest-sync-foot");
+    if (latestSync && item.last_success_at) {
+      const checked = new Date(item.last_success_at);
+      latestSync.textContent = Number.isNaN(checked.getTime())
+        ? "Unknown"
+        : checked.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      if (latestSyncFoot) latestSyncFoot.textContent = "Last successful adapter check";
+    } else {
+      if (latestSync) latestSync.textContent = "Not yet";
+      if (latestSyncFoot) latestSyncFoot.textContent = "No successful external check";
+    }
+
+    const footerMode = $("#footer-mode-status");
+    if (footerMode) {
+      footerMode.textContent = item.integration_state === "connected" && item.status === "operational"
+        ? "HQ API active · venture monitoring connected"
+        : item.integration_state === "not_configured"
+          ? "HQ API active · no live venture connections"
+          : "HQ API active · venture monitoring needs attention";
+    }
+    const sidebarTitle = $("#sidebar-mode-title");
+    const sidebarDescription = $("#sidebar-mode-description");
+    if (sidebarTitle) sidebarTitle.textContent = "HQ API active";
+    if (sidebarDescription) sidebarDescription.textContent =
+      item.integration_state === "connected" ? "Read-only venture status connected" : "Venture adapter: " + (stateLabels[item.integration_state] || "Unknown");
+    const settingsEnvironment = $("#settings-environment-value");
+    const settingsEnvironmentDescription = $("#settings-environment-description");
+    if (settingsEnvironment) settingsEnvironment.textContent = "Server-backed";
+    if (settingsEnvironmentDescription) settingsEnvironmentDescription.textContent = "FastAPI service with persistent HQ records";
+    const settingsDataSource = $("#settings-data-source-value");
+    const settingsDataSourceDescription = $("#settings-data-source-description");
+    if (settingsDataSource) settingsDataSource.textContent =
+      item.integration_state === "connected" ? "SQLite + venture adapter" : "SQLite";
+    if (settingsDataSourceDescription) settingsDataSourceDescription.textContent =
+      item.integration_state === "connected" ? "HQ records plus read-only venture status" : "External adapter is not currently connected";
+
     const values = [
       ["Active missions", item.active_missions],
       ["Queued", item.queued_missions],
