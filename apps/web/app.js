@@ -161,8 +161,9 @@
       ? "Connected · " + (item.status || "unknown")
       : (stateLabels[item.integration_state] || "Unknown");
     state.replaceChildren(document.createElement("i"), document.createTextNode(" " + stateLabel));
-    state.classList.toggle("integration-connected", item.integration_state === "connected");
-    state.classList.toggle("integration-warning", item.integration_state === "stale" || item.integration_state === "error");
+    const healthy = item.integration_state === "connected" && item.status === "operational";
+    state.classList.toggle("integration-connected", healthy);
+    state.classList.toggle("integration-warning", !healthy);
     message.textContent = item.message || "No venture status message is available.";
 
     const values = [
@@ -197,10 +198,14 @@
     const noticeDescription = $("#integration-notice-description");
     const noticeTag = $("#integration-notice-tag");
     if (noticeTitle && noticeDescription && noticeTag) {
-      if (item.integration_state === "connected") {
+      if (item.integration_state === "connected" && item.status === "operational") {
         noticeTitle.textContent = "Read-only venture monitoring is connected";
         noticeDescription.textContent = "Status and mission counts come from the venture's dedicated endpoint; HQ cannot start, stop, or change missions.";
         noticeTag.textContent = "READ ONLY";
+      } else if (item.integration_state === "connected" && (item.status === "down" || item.status === "degraded")) {
+        noticeTitle.textContent = "AI Software Developer needs attention";
+        noticeDescription.textContent = "The venture explicitly reported " + item.status + ". HQ is showing its status without attempting to change the venture.";
+        noticeTag.textContent = item.status.toUpperCase();
       } else if (item.integration_state === "stale" || item.integration_state === "error") {
         noticeTitle.textContent = "Venture monitoring needs attention";
         noticeDescription.textContent = item.message || "HQ could not verify the latest venture status.";
