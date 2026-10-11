@@ -157,7 +157,10 @@
       stale: "Stale data",
       error: "Connection error"
     };
-    state.replaceChildren(document.createElement("i"), document.createTextNode(" " + (stateLabels[item.integration_state] || "Unknown")));
+    const stateLabel = item.integration_state === "connected"
+      ? "Connected · " + (item.status || "unknown")
+      : (stateLabels[item.integration_state] || "Unknown");
+    state.replaceChildren(document.createElement("i"), document.createTextNode(" " + stateLabel));
     state.classList.toggle("integration-connected", item.integration_state === "connected");
     state.classList.toggle("integration-warning", item.integration_state === "stale" || item.integration_state === "error");
     message.textContent = item.message || "No venture status message is available.";
@@ -180,9 +183,15 @@
     }));
 
     const lastSuccess = item.last_success_at ? new Date(item.last_success_at) : null;
-    freshness.textContent = lastSuccess && !Number.isNaN(lastSuccess.getTime())
-      ? "Last successful check: " + lastSuccess.toLocaleString()
-      : "Last successful check: not yet";
+    const sourceUpdated = item.source_updated_at ? new Date(item.source_updated_at) : null;
+    if (lastSuccess && !Number.isNaN(lastSuccess.getTime())) {
+      freshness.textContent = "Last successful check: " + lastSuccess.toLocaleString();
+      if (sourceUpdated && !Number.isNaN(sourceUpdated.getTime())) {
+        freshness.textContent += " · Source snapshot: " + sourceUpdated.toLocaleString();
+      }
+    } else {
+      freshness.textContent = "Last successful check: not yet";
+    }
 
     const noticeTitle = $("#integration-notice-title");
     const noticeDescription = $("#integration-notice-description");
