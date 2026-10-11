@@ -51,3 +51,5 @@
 #developer-integration-state.integration-connected{border-color:#246e60;color:#86e5c8;background:#0c2927}
 #developer-integration-state.integration-warning{border-color:#765c36;color:#f2c780;background:#2b2115}
 @media(max-width:680px){.integration-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.integration-panel{padding:16px}}
+
+.panel-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}.refresh-status-button{border:1px solid #344866;background:#172741;color:#c4d8fa;border-radius:7px;padding:7px 10px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .18s,border-color .18s}.refresh-status-button:hover:not(:disabled){background:#203657;border-color:#4d6a92}.refresh-status-button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}.refresh-status-button:disabled{opacity:.65;cursor:wait}@media(max-width:760px){.panel-actions{align-items:flex-end;flex-direction:column;gap:7px}.refresh-status-button{width:100%}}

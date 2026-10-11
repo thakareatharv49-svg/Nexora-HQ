@@ -73,3 +73,14 @@ test("registry management form is accessible and handles API records safely", ()
   assert.match(js, /A venture with this name is already registered/);
   assert.match(js, /data-edit-venture/);
 });
+
+
+test("venture status can be refreshed manually and is periodically rechecked", () => {
+  assert.match(html, /id="refresh-developer-status"[^>]*type="button"/);
+  assert.match(js, /addEventListener\("click", refreshDeveloperStatus\)/);
+  assert.match(js, /window\.setInterval\(\(\) =>/);
+  assert.match(js, /\}, 30000\)/);
+  assert.match(js, /cache: "no-store"/);
+  assert.match(js, /integrationRefreshInFlight/);
+  assert.match(js, /aria-busy/);
+});
