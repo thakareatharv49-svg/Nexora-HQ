@@ -17,6 +17,7 @@ from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
 from .auth import create_session, verify_password, verify_session
 from .config import Settings
 from .database import HQDatabase
+from .integrations import ReadOnlyDeveloperAdapter, VentureIntegration
 
 logger = logging.getLogger("nexora_hq")
 LOGIN_FAILURE_LIMIT = 5
@@ -51,7 +52,7 @@ class HealthResponse(BaseModel):
     status: Literal["ok", "degraded"]
     service: str
     database: Literal["ready", "unavailable"]
-    venture_integrations: Literal["not_configured"]
+    venture_integrations: Literal["configured", "not_configured"]
 
 
 class Venture(BaseModel):
@@ -100,7 +101,7 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
     production = settings.environment == "production"
     application = FastAPI(
         title="Nexora HQ API",
-        description="Parent-company venture registry and HQ-owned activity. Venture adapters are not enabled.",
+        description="Parent-company registry, HQ activity, and read-only venture status integrations.",
         version="0.1.0",
         lifespan=lifespan,
         docs_url=None if production else "/docs",
@@ -109,6 +110,10 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
     )
     application.state.database = database
     application.state.settings = settings
+    application.state.developer_adapter = ReadOnlyDeveloperAdapter(
+        settings.ai_software_developer_url,
+        settings.ai_software_developer_token,
+    )
 
     def require_auth(request: Request) -> None:
         current_settings = request.app.state.settings
@@ -240,15 +245,29 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
                     "status": "degraded",
                     "service": "nexora-hq",
                     "database": "unavailable",
-                    "venture_integrations": "not_configured",
+                    "venture_integrations": (
+                        "configured" if request.app.state.settings.ai_software_developer_url else "not_configured"
+                    ),
                 },
             )
         return HealthResponse(
             status="ok",
             service="nexora-hq",
             database="ready",
-            venture_integrations="not_configured",
+            venture_integrations=(
+                "configured" if request.app.state.settings.ai_software_developer_url else "not_configured"
+            ),
         )
+
+    @application.get(
+        "/api/integrations/ai-software-developer",
+        response_model=VentureIntegration,
+        tags=["integrations"],
+        dependencies=[Depends(require_auth)],
+    )
+    async def ai_software_developer_status(request: Request) -> VentureIntegration:
+        """Return a normalized, read-only status snapshot from the configured venture."""
+        return await request.app.state.developer_adapter.read_status()
 
     @application.get(
         "/api/ventures", response_model=VentureList, tags=["ventures"], dependencies=[Depends(require_auth)]
