@@ -99,7 +99,7 @@ class ReadOnlyDeveloperAdapter:
                 response = await client.get(f"{self.base_url}/api/hq/status")
             if response.status_code != 200:
                 raise ValueError("status endpoint did not return HTTP 200")
-            payload = DeveloperStatusPayload.model_validate(response.json())
+            payload = DeveloperStatusPayload.model_validate_json(response.content)
         except (httpx.HTTPError, ValueError, ValidationError, TypeError):
             last_success = self._last_success_at
             stale = last_success is not None and (
