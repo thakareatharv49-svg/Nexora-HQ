@@ -6,7 +6,7 @@ from typing import Literal
 from urllib.parse import urlsplit
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 
 VentureStatus = Literal["operational", "degraded", "down", "unknown"]
@@ -25,6 +25,13 @@ class DeveloperStatusPayload(BaseModel):
     completed_missions: int = Field(ge=0)
     blocked_missions: int = Field(ge=0)
     updated_at: datetime
+
+    @field_validator("updated_at")
+    @classmethod
+    def require_timezone_aware_timestamp(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("updated_at must include a timezone")
+        return value
 
 
 class VentureIntegration(BaseModel):
@@ -122,7 +129,8 @@ class ReadOnlyDeveloperAdapter:
 
         self._last_success_at = now
         self._last_source_updated_at = payload.updated_at
-        source_is_stale = (now - payload.updated_at).total_seconds() > self.stale_after_seconds
+        source_age = (now - payload.updated_at).total_seconds()
+        source_is_stale = source_age > self.stale_after_seconds or source_age < -60
         return VentureIntegration(
             status=payload.status,
             integration_state="stale" if source_is_stale else "connected",
