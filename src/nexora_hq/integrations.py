@@ -5,8 +5,9 @@ from datetime import UTC, datetime
 from typing import Literal
 from urllib.parse import urlsplit
 
-import httpx
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+
+import httpx
 
 
 VentureStatus = Literal["operational", "degraded", "down", "unknown"]
