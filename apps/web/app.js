@@ -6,6 +6,7 @@
   let apiConnected = false;
   let ventureItems = [];
   let editingVentureId = null;
+  let integrationRefreshInFlight = false;
   const activityItems = [
     { symbol: "✦", tone: "violet", title: "HQ foundation created", detail: "Dashboard shell and venture boundaries established.", meta: "Foundation record · illustrative", kind: "SYSTEM" },
     { symbol: "◇", tone: "blue", title: "Venture registry initialized", detail: "Two independent ventures listed for future monitoring.", meta: "Foundation record · illustrative", kind: "REGISTRY" },
@@ -143,6 +144,55 @@
     return card;
   }
 
+
+  async function refreshDeveloperStatus() {
+    if (integrationRefreshInFlight) return;
+    const button = $("#refresh-developer-status");
+    integrationRefreshInFlight = true;
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Refreshing…";
+      button.setAttribute("aria-busy", "true");
+    }
+    try {
+      const response = await fetch("/api/integrations/ai-software-developer", {
+        headers: { Accept: "application/json" },
+        cache: "no-store"
+      });
+      if (response.status === 401) {
+        await syncHQApi();
+        return;
+      }
+      if (!response.ok) {
+        renderDeveloperIntegration({
+          integration_state: "error",
+          status: "unknown",
+          message: "HQ could not refresh venture status. Check the HQ API connection.",
+          last_success_at: null,
+          source_updated_at: null,
+          source: null
+        });
+        return;
+      }
+      renderDeveloperIntegration(await response.json());
+    } catch {
+      renderDeveloperIntegration({
+        integration_state: "error",
+        status: "unknown",
+        message: "HQ could not reach its API to refresh venture status.",
+        last_success_at: null,
+        source_updated_at: null,
+        source: null
+      });
+    } finally {
+      integrationRefreshInFlight = false;
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Refresh status";
+        button.removeAttribute("aria-busy");
+      }
+    }
+  }
 
   function renderDeveloperIntegration(item) {
     const state = $("#developer-integration-state");
@@ -578,4 +628,10 @@
   if (pages.includes(hashPage)) showPage(hashPage);
   else showPage("overview");
   syncHQApi();
+  $("#refresh-developer-status")?.addEventListener("click", refreshDeveloperStatus);
+  window.setInterval(() => {
+    if (apiConnected && $("#auth-overlay")?.classList.contains("hidden")) {
+      refreshDeveloperStatus();
+    }
+  }, 30000);
 })();
