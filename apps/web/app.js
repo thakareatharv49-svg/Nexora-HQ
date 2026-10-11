@@ -143,6 +143,155 @@
     return card;
   }
 
+
+  function renderDeveloperIntegration(item) {
+    const state = $("#developer-integration-state");
+    const message = $("#developer-integration-message");
+    const metrics = $("#developer-integration-metrics");
+    const freshness = $("#developer-integration-freshness");
+    if (!state || !message || !metrics || !freshness || !item) return;
+
+    const stateLabels = {
+      not_configured: "Not configured",
+      connected: "Connected",
+      stale: "Stale data",
+      error: "Connection error"
+    };
+    const stateLabel = item.integration_state === "connected"
+      ? "Connected · " + (item.status || "unknown")
+      : (stateLabels[item.integration_state] || "Unknown");
+    state.replaceChildren(document.createElement("i"), document.createTextNode(" " + stateLabel));
+    const healthy = item.integration_state === "connected" && item.status === "operational";
+    state.classList.toggle("integration-connected", healthy);
+    state.classList.toggle("integration-warning", !healthy);
+    message.textContent = item.message || "No venture status message is available.";
+
+    const registryConnected = ventureItems.filter(venture => venture.connection_state === "connected").length;
+    const developerAlreadyCounted = ventureItems.some(venture =>
+      /ai software developer/i.test(venture.name) && venture.connection_state === "connected"
+    );
+    const connectedCount = Math.min(
+      ventureItems.length,
+      registryConnected + (item.integration_state === "connected" && !developerAlreadyCounted ? 1 : 0)
+    );
+    const connectedCountElement = $("#connected-ventures-count");
+    if (connectedCountElement && apiConnected) connectedCountElement.textContent = String(connectedCount).padStart(2, "0");
+    const connectedFoot = $("#connected-ventures-foot");
+    if (connectedFoot) {
+      connectedFoot.textContent = item.integration_state === "connected"
+        ? "Dedicated status endpoint responding"
+        : item.integration_state === "not_configured"
+          ? "Integrations not configured"
+          : "Adapter status needs attention";
+    }
+
+    const attention = item.integration_state === "not_configured"
+      ? null
+      : (item.integration_state !== "connected" || item.status !== "operational" ? 1 : 0);
+    const attentionValue = $("#ventures-attention-count");
+    const attentionFoot = $("#ventures-attention-foot");
+    if (attentionValue) attentionValue.textContent = attention === null ? "—" : String(attention).padStart(2, "0");
+    if (attentionFoot) {
+      attentionFoot.textContent = attention === null
+        ? "Configure adapter to monitor venture health"
+        : attention === 0
+          ? "No configured venture reporting issues"
+          : "AI Software Developer needs attention";
+    }
+
+    const latestSync = $("#latest-sync-value");
+    const latestSyncFoot = $("#latest-sync-foot");
+    if (latestSync && item.last_success_at) {
+      const checked = new Date(item.last_success_at);
+      latestSync.textContent = Number.isNaN(checked.getTime())
+        ? "Unknown"
+        : checked.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      if (latestSyncFoot) latestSyncFoot.textContent = "Last successful adapter check";
+    } else {
+      if (latestSync) latestSync.textContent = "Not yet";
+      if (latestSyncFoot) latestSyncFoot.textContent = "No successful external check";
+    }
+
+    const footerMode = $("#footer-mode-status");
+    if (footerMode) {
+      footerMode.textContent = item.integration_state === "connected" && item.status === "operational"
+        ? "HQ API active · venture monitoring connected"
+        : item.integration_state === "not_configured"
+          ? "HQ API active · no live venture connections"
+          : "HQ API active · venture monitoring needs attention";
+    }
+    const sidebarTitle = $("#sidebar-mode-title");
+    const sidebarDescription = $("#sidebar-mode-description");
+    if (sidebarTitle) sidebarTitle.textContent = "HQ API active";
+    if (sidebarDescription) sidebarDescription.textContent =
+      item.integration_state === "connected" ? "Read-only venture status connected" : "Venture adapter: " + (stateLabels[item.integration_state] || "Unknown");
+    const settingsEnvironment = $("#settings-environment-value");
+    const settingsEnvironmentDescription = $("#settings-environment-description");
+    if (settingsEnvironment) settingsEnvironment.textContent = "Server-backed";
+    if (settingsEnvironmentDescription) settingsEnvironmentDescription.textContent = "FastAPI service with persistent HQ records";
+    const settingsDataSource = $("#settings-data-source-value");
+    const settingsDataSourceDescription = $("#settings-data-source-description");
+    if (settingsDataSource) settingsDataSource.textContent =
+      item.integration_state !== "not_configured" ? "SQLite + venture adapter" : "SQLite";
+    if (settingsDataSourceDescription) settingsDataSourceDescription.textContent =
+      item.integration_state === "connected"
+        ? "HQ records plus read-only venture status"
+        : item.integration_state === "not_configured"
+          ? "External adapter is not configured"
+          : "Adapter configured; latest status is unavailable or stale";
+
+    const values = [
+      ["Active missions", item.active_missions],
+      ["Queued", item.queued_missions],
+      ["Completed", item.completed_missions],
+      ["Blocked", item.blocked_missions]
+    ];
+    metrics.replaceChildren(...values.map(([label, value]) => {
+      const metric = document.createElement("div");
+      metric.className = "integration-metric";
+      const caption = document.createElement("span");
+      caption.textContent = label;
+      const count = document.createElement("strong");
+      count.textContent = Number.isInteger(value) && value >= 0 ? String(value) : "—";
+      metric.append(caption, count);
+      return metric;
+    }));
+
+    const lastSuccess = item.last_success_at ? new Date(item.last_success_at) : null;
+    const sourceUpdated = item.source_updated_at ? new Date(item.source_updated_at) : null;
+    if (lastSuccess && !Number.isNaN(lastSuccess.getTime())) {
+      freshness.textContent = "Last successful check: " + lastSuccess.toLocaleString();
+      if (sourceUpdated && !Number.isNaN(sourceUpdated.getTime())) {
+        freshness.textContent += " · Source snapshot: " + sourceUpdated.toLocaleString();
+      }
+    } else {
+      freshness.textContent = "Last successful check: not yet";
+    }
+
+    const noticeTitle = $("#integration-notice-title");
+    const noticeDescription = $("#integration-notice-description");
+    const noticeTag = $("#integration-notice-tag");
+    if (noticeTitle && noticeDescription && noticeTag) {
+      if (item.integration_state === "connected" && item.status === "operational") {
+        noticeTitle.textContent = "Read-only venture monitoring is connected";
+        noticeDescription.textContent = "Status and mission counts come from the venture's dedicated endpoint; HQ cannot start, stop, or change missions.";
+        noticeTag.textContent = "READ ONLY";
+      } else if (item.integration_state === "connected") {
+        noticeTitle.textContent = item.status === "unknown" ? "Venture health is unknown" : "AI Software Developer needs attention";
+        noticeDescription.textContent = "The venture explicitly reported " + item.status + ". HQ is showing its status without attempting to change the venture.";
+        noticeTag.textContent = item.status.toUpperCase();
+      } else if (item.integration_state === "stale" || item.integration_state === "error") {
+        noticeTitle.textContent = "Venture monitoring needs attention";
+        noticeDescription.textContent = item.message || "HQ could not verify the latest venture status.";
+        noticeTag.textContent = item.integration_state === "stale" ? "STALE" : "ERROR";
+      } else {
+        noticeTitle.textContent = "External venture monitoring is not configured";
+        noticeDescription.textContent = "HQ shows live status only after a dedicated read-only adapter is configured. It never invents health or mission metrics.";
+        noticeTag.textContent = "NOT CONNECTED";
+      }
+    }
+  }
+
   function renderRegistry(query = "") {
     const grid = $("#registry-grid");
     if (!grid) return;
@@ -323,11 +472,12 @@
       document.documentElement.dataset.hqApi = "connected";
       document.documentElement.classList.add("api-connected");
 
-      const [ventureResponse, activityResponse] = await Promise.all([
+      const [ventureResponse, activityResponse, integrationResponse] = await Promise.all([
         fetch("/api/ventures", { headers: { Accept: "application/json" }, cache: "no-store" }),
-        fetch("/api/activity?limit=50", { headers: { Accept: "application/json" }, cache: "no-store" })
+        fetch("/api/activity?limit=50", { headers: { Accept: "application/json" }, cache: "no-store" }),
+        fetch("/api/integrations/ai-software-developer", { headers: { Accept: "application/json" }, cache: "no-store" })
       ]);
-      if (ventureResponse.status === 401 || activityResponse.status === 401) {
+      if (ventureResponse.status === 401 || activityResponse.status === 401 || integrationResponse.status === 401) {
         await syncHQApi();
         return;
       }
@@ -344,6 +494,9 @@
           $("#venture-grid")?.replaceChildren(...ventureItems.map(item => makeVentureCard(item)));
           renderRegistry($("#venture-search")?.value || "");
         }
+      }
+      if (integrationResponse.ok) {
+        renderDeveloperIntegration(await integrationResponse.json());
       }
       if (activityResponse.ok) {
         const payload = await activityResponse.json();

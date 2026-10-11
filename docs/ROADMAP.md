@@ -41,7 +41,7 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [x] Add a persistent five-failure sign-in cooldown with regression tests.
 - [ ] Add a richer admin identity model and review trusted proxy configuration before public internet exposure.
 - [x] Add system health, database readiness and safe error responses.
-- [ ] Add stale-data and last-success indicators after venture adapters exist.
+- [x] Add stale-data, last-success and source-snapshot freshness indicators for the first adapter.
 - [x] Add runtime configuration validation and safe defaults.
 - [x] Document database backup and restore procedures.
 - [x] Add integrity-checked SQLite backup/restore helpers, explicit overwrite protection, rollback copies, and regression tests.
@@ -59,7 +59,7 @@ Nexora HQ is the parent-company visibility layer. It does not execute venture wo
 - [ ] Complete manual accessibility and browser acceptance testing.
 
 ## Later — Venture integrations and limits
-- [ ] Integrate AI Software Developer through a read-only venture-level adapter.
+- [x] Implement the HQ-side read-only adapter, strict payload validation, timeouts, explicit failure/stale states and status panel.\n- [ ] Add the dedicated authenticated status endpoint to AI Software Developer and verify end-to-end live monitoring.
 - [ ] Integrate AI Open Source Contributor through its own read-only adapter.
 - [ ] Test timeout, unavailable, malformed, stale and rate-limited upstream responses.
 - [ ] Define operational limits and policies after the core system is stable.

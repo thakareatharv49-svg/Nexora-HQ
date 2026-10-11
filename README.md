@@ -22,7 +22,8 @@ uvicorn src.nexora_hq.app:app --reload
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000). The FastAPI application serves the dashboard and exposes:
 
-- `GET /api/health` — HQ service health and database readiness.
+- `GET /api/health` — HQ service health, database readiness and whether venture integration configuration is present.
+- `GET /api/integrations/ai-software-developer` — authenticated, read-only normalized status from a configured dedicated venture endpoint.
 - `GET /api/auth/status`, `POST /api/auth/login`, `POST /api/auth/logout` — session-based administrator sign-in.
 - Registry and activity endpoints require a valid administrator session in production.
 - `GET /api/ventures` — persisted venture registry.
@@ -31,7 +32,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000). The FastAPI application ser
 - `GET /api/activity?limit=50` — HQ-owned activity records; limit must be between 1 and 100.
 - `GET /docs` — interactive API documentation in development/test mode; disabled in production.
 
-SQLite stores HQ registry and activity records in `data/nexora-hq.sqlite3` by default. Set `NEXORA_DB_PATH` to use a different path and `NEXORA_ENV` to `development`, `test`, or `production`. Runtime configuration is validated; production mode requires an admin password hash and a session-signing secret and rejects an in-memory database. The database is initialized with the two known ventures and clearly labeled HQ setup records. External venture integrations remain unconfigured. The health endpoint returns a degraded response when the database readiness probe fails.
+SQLite stores HQ registry and activity records in `data/nexora-hq.sqlite3` by default. Set `NEXORA_DB_PATH` to use a different path and `NEXORA_ENV` to `development`, `test`, or `production`. Runtime configuration is validated; production mode requires an admin password hash and a session-signing secret and rejects an in-memory database. The database is initialized with the two known ventures and clearly labeled HQ setup records. External venture integrations remain unconfigured by default. To configure the AI Software Developer adapter, set `NEXORA_AI_SOFTWARE_DEVELOPER_URL` to the venture base URL and `NEXORA_AI_SOFTWARE_DEVELOPER_TOKEN` to its dedicated read-only service token. HQ requests only `/api/hq/status`, uses a short timeout, rejects redirects, validates an explicit status payload, and labels stale or failed checks instead of inferring health from HTTP status. Production requires HTTPS. The corresponding source endpoint must be deployed and configured before live data appears. The health endpoint returns a degraded response when the database readiness probe fails.
 
 For the static frontend alone, run `python -m http.server 4173 --directory apps/web` and open [http://localhost:4173](http://localhost:4173). Static hosting does not include the API; the UI stays in its explicit static-foundation state.
 
@@ -64,7 +65,7 @@ GitHub Actions validates frontend behavior, runs Chromium browser acceptance tes
 
 ## Security principles
 
-Never put tokens or credentials in browser code. Future venture adapters must run server-side, use least-privilege read-only access, apply timeouts, report source timestamps and freshness, and isolate upstream failures. HQ must not execute, mutate or take ownership of venture workloads. Configuration and authentication remain read-only/unimplemented until their own milestone is delivered.
+Never put tokens or credentials in browser code. Future venture adapters must run server-side, use least-privilege read-only access, apply timeouts, report source timestamps and freshness, and isolate upstream failures. HQ must not execute, mutate or take ownership of venture workloads. Dashboard settings remain read-only; integration URLs and service tokens are configured only through server-side environment variables.
 
 ## Delivery status
 

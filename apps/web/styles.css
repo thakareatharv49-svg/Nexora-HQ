@@ -38,3 +38,16 @@
 .edit-venture-button{border:1px solid #344863;border-radius:6px;background:#132039;color:#b9d1f5;padding:6px 9px;font-size:10px;font-weight:700;cursor:pointer}
 .edit-venture-button:hover{border-color:#79adff;background:#1a2b46}
 .edit-venture-button:focus-visible{outline:2px solid #8cb4f3;outline-offset:2px}
+
+
+.integration-panel{margin:0 0 26px;padding:21px}
+.integration-panel>.panel-heading{margin-bottom:12px}
+#developer-integration-message{margin:0;color:var(--muted);font-size:12px;line-height:1.7}
+.integration-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 10px}
+.integration-metric{display:flex;flex-direction:column;gap:9px;min-width:0;padding:13px;border:1px solid #253650;border-radius:10px;background:#0b1424}
+.integration-metric span{color:var(--muted);font-size:10px;line-height:1.4}
+.integration-metric strong{font-size:23px;line-height:1;font-weight:750;letter-spacing:-.5px}
+.integration-freshness{margin:0;color:var(--muted);font-size:10px}
+#developer-integration-state.integration-connected{border-color:#246e60;color:#86e5c8;background:#0c2927}
+#developer-integration-state.integration-warning{border-color:#765c36;color:#f2c780;background:#2b2115}
+@media(max-width:680px){.integration-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.integration-panel{padding:16px}}

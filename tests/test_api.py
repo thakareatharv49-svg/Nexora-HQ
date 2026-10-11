@@ -71,3 +71,27 @@ def test_health_reports_degraded_when_database_is_unavailable(tmp_path):
     assert response.status_code == 503
     assert response.json()["status"] == "degraded"
     assert response.json()["database"] == "unavailable"
+
+
+
+def test_developer_integration_endpoint_is_explicitly_not_configured_by_default(tmp_path):
+    with TestClient(create_app(tmp_path / "integration.sqlite3")) as client:
+        response = client.get("/api/integrations/ai-software-developer")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["venture_id"] == "ai-software-developer"
+    assert payload["integration_state"] == "not_configured"
+    assert payload["status"] == "unknown"
+    assert payload["active_missions"] is None
+    assert payload["last_success_at"] is None
+
+
+def test_health_reports_when_an_external_adapter_is_configured(monkeypatch, tmp_path):
+    monkeypatch.setenv("NEXORA_AI_SOFTWARE_DEVELOPER_URL", "https://developer.example")
+    monkeypatch.setenv("NEXORA_AI_SOFTWARE_DEVELOPER_TOKEN", "test-service-token")
+    with TestClient(create_app(tmp_path / "configured.sqlite3")) as client:
+        response = client.get("/api/health")
+
+    assert response.status_code == 200
+    assert response.json()["venture_integrations"] == "configured"

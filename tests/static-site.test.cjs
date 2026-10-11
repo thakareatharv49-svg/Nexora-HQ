@@ -18,7 +18,12 @@ test("venture cards remain explicit about unconnected status", () => {
   assert.match(html, /AI Software Developer/);
   assert.match(html, /AI Open Source Contributor/);
   assert.equal((html.match(/Not connected/g) || []).length >= 2, true);
-  assert.match(html, /does not fetch live venture data yet/);
+  assert.match(html, /dedicated read-only adapter is configured/);
+  assert.match(html, /never invents health or mission metrics/);
+  assert.match(html, /id="developer-integration-state"/);
+  assert.match(html, /id="developer-integration-freshness"/);
+  assert.match(js, /api\/integrations\/ai-software-developer/);
+  assert.match(js, /Source snapshot:/);
   assert.match(html, /No external event stream is connected/);
 });
 

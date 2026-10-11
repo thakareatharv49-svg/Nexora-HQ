@@ -21,7 +21,7 @@
         <a class="nav-link" href="#settings" data-view="settings"><span class="nav-icon">⚙</span> Settings</a>
       </nav>
       <div class="sidebar-spacer"></div>
-      <div class="connection-card"><span class="status-dot"></span><div><strong>Foundation mode</strong><small>External ventures are not connected</small></div></div>
+      <div class="connection-card"><span class="status-dot"></span><div><strong id="sidebar-mode-title">HQ API mode</strong><small id="sidebar-mode-description">External venture adapter status is shown below</small></div></div>
       <div class="profile"><div class="profile-avatar">NX</div><div><strong>Nexora HQ</strong><small>Parent company</small></div><span class="profile-menu">···</span></div>
     </aside>
 
@@ -32,16 +32,28 @@
       </header>
 
       <section class="view-section" id="overview-view" data-page="overview">
-        <div class="page-heading"><div><p class="eyebrow"><span class="eyebrow-dot"></span> PARENT COMPANY CONTROL CENTER</p><h1>One view. Every venture.</h1><p class="heading-subtitle">A clear picture of the businesses building Nexora. Connections will be enabled after each venture is stable.</p></div><div class="date-chip"><span class="date-icon">◷</span><span><strong>HQ workspace</strong><small>Local foundation</small></span></div></div>
-        <div class="notice-banner"><span class="notice-icon">i</span><div><strong>Integrations are intentionally paused</strong><p>This dashboard does not fetch live venture data yet. No live health, metrics, or activity are being fabricated.</p></div><span class="notice-tag">NOT CONNECTED</span></div>
+        <div class="page-heading"><div><p class="eyebrow"><span class="eyebrow-dot"></span> PARENT COMPANY CONTROL CENTER</p><h1>One view. Every venture.</h1><p class="heading-subtitle">A company-wide view of venture health and progress, with all execution kept inside each independent venture.</p></div><div class="date-chip"><span class="date-icon">◷</span><span><strong>HQ workspace</strong><small>Local foundation</small></span></div></div>
+        <div class="notice-banner"><span class="notice-icon">i</span><div><strong id="integration-notice-title">External venture monitoring is not configured</strong><p id="integration-notice-description">HQ shows live status only after a dedicated read-only adapter is configured. It never invents health or mission metrics.</p></div><span class="notice-tag" id="integration-notice-tag">NOT CONNECTED</span></div>
 
         <div class="section-heading"><div><h2>Company overview</h2><p>Your portfolio at a glance</p></div><span class="subtle-label">FOUNDATION SNAPSHOT</span></div>
         <div class="stats-grid">
           <article class="stat-card"><div class="stat-top"><span class="stat-label">Registered ventures</span><span class="stat-icon violet">◇</span></div><div class="stat-value">02</div><div class="stat-foot"><span class="neutral-dot"></span> Listed in HQ registry</div></article>
-          <article class="stat-card"><div class="stat-top"><span class="stat-label">Connected ventures</span><span class="stat-icon blue">↔</span></div><div class="stat-value">00</div><div class="stat-foot"><span class="neutral-dot"></span> Integrations deferred</div></article>
-          <article class="stat-card"><div class="stat-top"><span class="stat-label">Active incidents</span><span class="stat-icon amber">△</span></div><div class="stat-value">—</div><div class="stat-foot">Unavailable until monitoring exists</div></article>
-          <article class="stat-card"><div class="stat-top"><span class="stat-label">Latest sync</span><span class="stat-icon teal">⟳</span></div><div class="stat-value stat-word">Not yet</div><div class="stat-foot">No external sources configured</div></article>
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Connected ventures</span><span class="stat-icon blue">↔</span></div><div class="stat-value" id="connected-ventures-count">00</div><div class="stat-foot" id="connected-ventures-foot"><span class="neutral-dot"></span> Integrations not configured</div></article>
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Ventures needing attention</span><span class="stat-icon amber">△</span></div><div class="stat-value" id="ventures-attention-count">—</div><div class="stat-foot" id="ventures-attention-foot">Unavailable until monitoring is configured</div></article>
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Latest sync</span><span class="stat-icon teal">⟳</span></div><div class="stat-value stat-word" id="latest-sync-value">Not yet</div><div class="stat-foot" id="latest-sync-foot">No external sources configured</div></article>
         </div>
+
+        <section class="panel integration-panel" aria-labelledby="developer-integration-heading">
+          <div class="panel-heading"><div><h2 id="developer-integration-heading">AI Software Developer</h2><p>Read-only factory status · no mission controls</p></div><span class="state-pill" id="developer-integration-state"><i></i> Not configured</span></div>
+          <p id="developer-integration-message" role="status" aria-live="polite">A dedicated read-only status endpoint has not been configured. HQ will not guess venture health.</p>
+          <div class="integration-metrics" id="developer-integration-metrics">
+            <div class="integration-metric"><span>Active missions</span><strong>—</strong></div>
+            <div class="integration-metric"><span>Queued</span><strong>—</strong></div>
+            <div class="integration-metric"><span>Completed</span><strong>—</strong></div>
+            <div class="integration-metric"><span>Blocked</span><strong>—</strong></div>
+          </div>
+          <p class="integration-freshness" id="developer-integration-freshness">Last successful check: not yet</p>
+        </section>
 
         <div class="section-heading section-heading-spaced" id="ventures"><div><h2>Your ventures</h2><p>Independent products, one parent company</p></div><button class="text-button" data-go="ventures">View venture registry <span>→</span></button></div>
         <div class="venture-grid" id="venture-grid">
@@ -72,7 +84,7 @@
             <div class="readiness-list"><div class="readiness-item"><span class="check-mark">✓</span><span><strong>Separate venture ownership</strong><small>HQ does not manage generated apps</small></span><span class="ready-label">READY</span></div><div class="readiness-item"><span class="check-mark">✓</span><span><strong>Read-only integration contract</strong><small>Scope and permissions documented</small></span><span class="ready-label">READY</span></div><div class="readiness-item"><span class="check-mark">✓</span><span><strong>Honest connection states</strong><small>No fabricated live metrics</small></span><span class="ready-label">READY</span></div><div class="readiness-item"><span class="pending-mark">○</span><span><strong>Persistent registry API</strong><small>Planned for backend milestone</small></span><span class="pending-label">PLANNED</span></div><div class="readiness-item"><span class="pending-mark">○</span><span><strong>Automated test and deploy gate</strong><small>Requires verified CI and Pages run</small></span><span class="pending-label">PLANNED</span></div></div>
           </section>
         </div>
-        <footer class="page-footer"><span>© Nexora HQ · Parent-company workspace</span><span><span class="status-dot"></span> Foundation mode · no live connections</span></footer>
+        <footer class="page-footer"><span>© Nexora HQ · Parent-company workspace</span><span><span class="status-dot"></span> <span id="footer-mode-status">HQ foundation · no live connections</span></span></footer>
       </section>
 
       <section class="view-section hidden" id="ventures-view" data-page="ventures">
@@ -92,7 +104,7 @@
       <section class="view-section hidden" id="settings-view" data-page="settings">
         <div class="page-heading compact-heading"><div><p class="eyebrow">WORKSPACE CONFIGURATION</p><h1>Settings</h1><p class="heading-subtitle">Current HQ configuration and safety boundaries.</p></div></div>
         <div class="settings-grid">
-          <section class="panel settings-panel"><div class="panel-heading"><div><h2>Workspace</h2><p>Identity and operating mode</p></div></div><div class="setting-row"><span><strong>Workspace name</strong><small>Parent-company control center</small></span><span class="setting-value">Nexora HQ</span></div><div class="setting-row"><span><strong>Environment</strong><small>No backend or external adapters active</small></span><span class="setting-value">Foundation</span></div><div class="setting-row"><span><strong>Data source</strong><small>Static workspace shell</small></span><span class="setting-value">Local</span></div></section>
+          <section class="panel settings-panel"><div class="panel-heading"><div><h2>Workspace</h2><p>Identity and operating mode</p></div></div><div class="setting-row"><span><strong>Workspace name</strong><small>Parent-company control center</small></span><span class="setting-value">Nexora HQ</span></div><div class="setting-row"><span><strong>Environment</strong><small id="settings-environment-description">Waiting for HQ API status</small></span><span class="setting-value" id="settings-environment-value">Unknown</span></div><div class="setting-row"><span><strong>Data source</strong><small id="settings-data-source-description">External adapters are configured on the server</small></span><span class="setting-value" id="settings-data-source-value">HQ API</span></div></section>
           <section class="panel settings-panel"><div class="panel-heading"><div><h2>Security boundaries</h2><p>Principles that integrations must preserve</p></div></div><div class="setting-row"><span><strong>Venture permissions</strong><small>Read-only status and activity</small></span><span class="ready-label">REQUIRED</span></div><div class="setting-row"><span><strong>Secret storage</strong><small>Never expose credentials in browser code</small></span><span class="ready-label">REQUIRED</span></div><div class="setting-row"><span><strong>Workload ownership</strong><small>Execution remains inside each venture</small></span><span class="ready-label">PRESERVED</span></div></section>
         </div>
         <div class="notice-banner settings-notice"><span class="notice-icon">i</span><div><strong>Configuration editing is not enabled yet</strong><p>Settings are read-only until the backend, authentication, validation, and audit trail are implemented.</p></div></div>
